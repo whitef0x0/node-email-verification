@@ -1,0 +1,27 @@
+{
+  "name": "email-verification",
+  "version": "0.0.1",
+  "description": "Verify email sign-up using MongoDB.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/StDako/node-email-verification"
+  },
+  "keywords": [
+    "mongodb"
+  ],
+  "author": "Dakota St. Laurent <hello@stdako.com> (http://stdako.com/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/StDako/node-email-verification/issues"
+  },
+  "homepage": "https://github.com/StDako/node-email-verification",
+  "dependencies": {
+    "bcrypt": "^0.8.0",
+    "mongoose": "^3.8.19",
+    "rand-token": "^0.2.1"
+  }
+}
