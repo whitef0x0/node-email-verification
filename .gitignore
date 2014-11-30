@@ -1,6 +1,7 @@
 node_modules
 *.sublime-*
 TEST.js
+tempuser.js
 
 # compiled markdown
 README.html

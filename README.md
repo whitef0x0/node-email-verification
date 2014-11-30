@@ -7,4 +7,4 @@ the way this works (when this actually works) is as follows:
 - when the URL is accessed, the user's data is inserted into the real database
 
 ### status
-currently, temporary users are created (with a random URL) and saved.
+currently, temporary users are created (with a random URL) and saved. it is possible to predefine a temporary user Schema (which must be identical to the persistent user schema) instead of generating a schema on the fly every time.
