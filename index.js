@@ -74,44 +74,86 @@ var generateTempUserModel = function(User) {
 
 
 /**
- * Assign a randomly-generated URL to a user and save the user to the temporary 
- * collection, and send an email to the user requesting confirmation.
+ * Attempt to create an instance of a temporary user based off of an instance of a 
+ * persistent user. If user already exists in the temporary collection, passes null 
+ * to the callback function; otherwise, passes the instance to the callback, with a 
+ * randomly generated URL associated to it.
  *
- * @func registerTempUser
+ * @func createTempUser
  * @param {object} user - an instance of the persistent User model
+ * @return {object} null if user already exists; Mongoose Model instance otherwise
 */
-var registerTempUser = function(user) {
+var createTempUser = function(user, callback) {
     if (options.tempUserModel) {
-        var tempUserData = {},
-            newTempUser;
-
-        Object.keys(user._doc).forEach(function(field) {
-            tempUserData[field] = user[field];
-        });
-        tempUserData.GENERATED_VERIFYING_URL = randtoken.generate(48);
-        newTempUser = new options.tempUserModel(tempUserData);
-
-        newTempUser.save(function(err) {
+        options.tempUserModel.findOne({email: user.email}, function(err, existingUser) {
             if (err)
                 throw err;
 
-            var email = newTempUser.email,
-                URL = options.verificationURL + newTempUser.GENERATED_VERIFYING_URL,
-                mailOptions = JSON.parse(JSON.stringify(options.mailOptions));
-            mailOptions.to = email;
-            mailOptions.html = mailOptions.html.replace(/$\{URL\}/g, URL);
-            mailOptions.text = mailOptions.text.replace(/$\{URL\}/g, URL);
+            // user has already signed up...
+            if (existingUser)
+                callback(null);
+            
+            else {
+                var tempUserData = {},
+                    newTempUser;
 
-            transporter.sendMail(mailOptions, options.sendMailCallback);
+                // copy the credentials for the user
+                Object.keys(user._doc).forEach(function(field) {
+                    tempUserData[field] = user[field];
+                });
+                tempUserData.GENERATED_VERIFYING_URL = randtoken.generate(48);
+                callback(new options.tempUserModel(tempUserData));
+            }
         });
 
     } else
         throw new TypeError("Temporary user model not defined. Either you forgot to generate one or you did not predefine one.");
 };
 
+
+/**
+ * Save the user to the temporary collection, and send an email to the user 
+ * requesting confirmation.
+ *
+ * @func registerTempUser
+ * @param {object} newTempUser - an instance of the temporary user model
+*/
+var registerTempUser = function(newTempUser) {
+    var r = /\$\{URL\}/g;
+    newTempUser.save(function(err) {
+        if (err)
+            throw err;
+
+        // inject newly-created URL into the email's body and FIRE
+        var email = newTempUser.email,
+            URL = options.verificationURL.replace(r, newTempUser.GENERATED_VERIFYING_URL),
+            mailOptions = JSON.parse(JSON.stringify(options.mailOptions));
+        mailOptions.to = email;
+        mailOptions.html = mailOptions.html.replace(r, URL);
+        mailOptions.text = mailOptions.text.replace(r, URL);
+
+        transporter.sendMail(mailOptions, options.sendMailCallback);
+    });
+};
+
+
+/**
+ * Assign a randomly-generated URL to a user and save the user to the temporary 
+ * collection, and send an email to the user requesting confirmation.
+ *
+ * @func confirmTempUser
+ * @param {object} user - an instance of the persistent User model
+*/
+var confirmTempUser = function(url) {
+    options.tempUserModel.findOne({GENERATED_VERIFYING_URL: url}, function(err, doc) {
+
+    });
+};
+
 module.exports = {
     options: options,
     configure: configure,
+    generateTempUserModel: generateTempUserModel,
+    createTempUser: createTempUser,
     registerTempUser: registerTempUser,
-    generateTempUserModel: generateTempUserModel
 };

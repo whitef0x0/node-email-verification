@@ -42,7 +42,7 @@ nev.configure({
 
 any options not included in the object you pass will take on the default value specified in the section below. calling ```configure``` multiple times with new options will simply change the previously defined options.
 
-to create a temporary user model, you can either generate it using a built-in function, or you can predefine it in a separate file. if you are pre-defining it, it must be IDENTICAL to the user model with an extra field ```GENERATED_VERIFYING_URL: String```. you're just better off generating it.
+to create a temporary user model, you can either generate it using a built-in function, or you can predefine it in a separate file. if you are pre-defining it, it must be IDENTICAL to the user model with an extra field ```GENERATED_VERIFYING_URL: String```. **you're just better off generating a model**.
 
 ```javascript
 // configuration options go here...
@@ -57,7 +57,7 @@ nev.configure({
 });
 ```
 
-then, create an instance of the User model and register the user by passing the instance to ```registerTempUser```:
+then, create an instance of the User model, and then pass it as well as a custom callback to ```createTempUser```, one that makes use of the function ```registerTempUser``` and, if you want, handles the case where the temporary user is already in the collection:
 
 ```javascript
 // get the credentials from request parameters or something
@@ -68,7 +68,16 @@ var newUser = User({
     email: email,
     password: password
 });
-nev.registerTempUser(newUser);
+
+nev.createTempUser(newUser, function(newTempUser) {
+    // all is well
+    if (newTempUser) {
+        nev.registerTempUser(newTempUser);
+    // user already exists in our temporary collection
+    } else {
+        console.log('')
+    }
+});
 ```
 
 an email will be sent to the email address that the user signed up with. note that this does not handle hashing passwords - that must be done on your own terms.
@@ -119,9 +128,12 @@ here are the default options:
 - email is sent with the URL in it, which can be customized
 
 ### todo
-- allow the length of the randomly-generated URL string to be customized
+- **required**: add a TTL to the temporary users
+- *new option*: the length of the randomly-generated URL string to be customized
+- *new option*: default callback to ```createTempUser```
 
 ### acknowledgements
 thanks to [Frank Cash](https://github.com/frankcash) for looking over my code.
 
 ### license
+ISC
