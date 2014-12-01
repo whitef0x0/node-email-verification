@@ -7,4 +7,6 @@ the way this works (when this actually works) is as follows:
 - when the URL is accessed, the user's data is inserted into the real database
 
 ### status
-currently, temporary users are created (with a random URL) and saved. it is possible to predefine a temporary user Schema (which must be identical to the persistent user schema) instead of generating a schema on the fly every time.
+- temporary users are created (with a random URL) and saved
+- possible to predefine a temporary user schema (which must be identical to the persistent user schema) or generate one based off of a persistent user schema (this should only be done once)
+- email is sent with the URL in it, which can be customized
