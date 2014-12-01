@@ -37,6 +37,12 @@ var options = {
 var transporter = nodemailer.createTransport(options.transportOptions);
 
 
+/**
+ * Modify the default configuration.
+ *
+ * @func configure
+ * @param {object} o - options to be changed
+*/
 var configure = function(o) {
     for (var key in o)
         options[key] = o[key];
@@ -44,8 +50,14 @@ var configure = function(o) {
 };
 
 
+/**
+ * Create a Mongoose Model for the temporary user, based off of the persistent 
+ * User model, i.e. the temporary user inherits the persistent user.
+ *
+ * @func generateTempUserModel
+ * @param {object} User - the persistent User model.
+*/
 var generateTempUserModel = function(User) {
-    // User is a Mongoose model
     var tempUserSchemaObject = {}, // a copy of the schema
         tempUserSchema, tempUserModel;
 
@@ -61,8 +73,14 @@ var generateTempUserModel = function(User) {
 };
 
 
+/**
+ * Assign a randomly-generated URL to a user and save the user to the temporary 
+ * collection, and send an email to the user requesting confirmation.
+ *
+ * @func registerTempUser
+ * @param {object} user - an instance of the persistent User model
+*/
 var registerTempUser = function(user) {
-    // user is an instance of a Mongoose model (e.g. user = new User())
     if (options.tempUserModel) {
         var tempUserData = {},
             newTempUser;
