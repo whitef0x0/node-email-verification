@@ -1,14 +1,16 @@
 # node email verification
 verify user signup with node and mongodb
 
-the way this works (when this actually works) is as follows:
+the way this works is as follows:
 
 - temporary user is created with a randomly generated URL assigned to it and then saved to a mongoDB collection
 - email is sent to the email address the user signed up with
 - when the URL is accessed, the user's data is inserted into the real collection
 
+a temporary user document has a TTL of 24 hours by default, but this (as well as many other things) can be configured. see the options section for more details. it is also possible to resend the verification email if needed.
+
 ### usage
-assuming you have a directory structure like so:
+this little guide of sorts assumes you have a directory structure like so:
 
 ```
 app/
@@ -28,6 +30,7 @@ mongoose.connect('mongodb://localhost/YOUR_DB');
 ```
 
 before doing anything, make sure to configure the options (see below for more extensive detail on this):
+
 ```javascript
 nev.configure({
     verificationURL: 'http://myawesomewebsite.com/email-verification/${URL}',
@@ -83,37 +86,38 @@ nev.createTempUser(newUser, function(newTempUser) {
     // a new user
     if (newTempUser) {
         nev.registerTempUser(newTempUser);
+        // flash message of success
 
     // user already exists in our temporary collection
     } else {
-        console.log('redirect user or send flash message or whatever!');
+        // flash message of failure...
     }
 });
 ```
 
 an email will be sent to the email address that the user signed up with. note that this does not handle hashing passwords - that must be done on your own terms.
 
-to move a user from the temporary storage to 'persistent' storage (e.g. when they actually access the URL we sent them), we call ```confirmTempUser```, which takes the URL as well as a callback with one argument (whether or not the user was found) as arguments:
+to move a user from the temporary storage to 'persistent' storage (e.g. when they actually access the URL we sent them), we call ```confirmTempUser```, which takes the URL as well as a callback with one argument (whether or not the user was found) as arguments. if the callback's argument is false, it is most likely because their data expired.
 
 ```javascript
-// get url somehow, e.g. from POST parameters
+var url = '...';
 nev.confirmTempUser(url, function(userFound) {
     if (userFound)
-        console.log('user found and put in persistent storage');
+        // redirect to their profile
     else
-        console.log("user wasn't found, oh noez :(");
+        // redirect to sign-up
 });
 ```
 
 if you want the user to be able to request another verification email, simply call ```resendVerificationEmail```, which takes the user's email address and a callback with one argument (again, whether or not the user was found) as arguments:
 
 ```javascript
-// get the user's email somehow, e.g. from POST parameters
+var email = '...';
 nev.resendVerificationEmail(email, function(userFound) {
     if (userFound)
-        console.log('user found, resent verification email');
+        // email has been sent
     else
-        console.log('UH OH SPAGHETTIO');
+        // flash message of failure...
 });
 ```
 
