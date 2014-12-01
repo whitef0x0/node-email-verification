@@ -1,11 +1,9 @@
-// a (temporary) template for a User schema.
-
 var mongoose = require('mongoose'),
     bcrypt   = require('bcrypt');
 
 var userSchema = mongoose.Schema({
-    email        : String,
-    password     : String,
+    email  : String,
+    pw     : String,
 });
 
 userSchema.methods.generateHash = function(password) {

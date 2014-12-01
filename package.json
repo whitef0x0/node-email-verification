@@ -11,7 +11,9 @@
     "url": "https://github.com/StDako/node-email-verification"
   },
   "keywords": [
-    "mongodb"
+    "mongodb",
+    "auth",
+    "authentication"
   ],
   "author": "Dakota St. Laurent <hello@stdako.com> (http://stdako.com/)",
   "license": "ISC",
@@ -24,5 +26,9 @@
     "mongoose": "^3.8.19",
     "nodemailer": "^1.3.0",
     "rand-token": "^0.2.1"
+  },
+  "devDependencies": {
+    "body-parser": "^1.9.3",
+    "express": "^4.10.4"
   }
 }

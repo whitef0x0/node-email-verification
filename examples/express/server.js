@@ -1,0 +1,86 @@
+var express = require('express'),
+    bodyParser = require('body-parser'),
+    app = express(),
+    mongoose = require('mongoose'),
+    nev = require('../../index');
+mongoose.connect('mongodb://localhost/YOUR_DATABASE_NAME');
+
+// our persistent user model
+var User = require('./app/userModel');
+
+
+// NEV configuration =====================
+nev.configure({
+    persistentUserModel: User,
+
+    verificationURL: 'http://localhost:8000/email-verification/${URL}',
+    transportOptions: {
+        service: 'Gmail',
+        auth: {
+            user: 'yoursupercoolemailyeah@gmail.com',
+            pass: 'yoursupersecurepassword'
+        }
+    },
+});
+
+nev.generateTempUserModel(User);
+
+
+// Express stuff =========================
+app.use(bodyParser.urlencoded());
+app.get('/', function(req, res) {
+    res.sendFile('index.html', {root: __dirname});
+});
+
+app.post('/', function(req, res) {
+    var email = req.body.email;
+
+    // register button was clicked
+    if (req.body.type === 'register') {
+        var pw = req.body.pw;
+        var newUser = new User({
+            email: email,
+            pw: pw
+        });
+
+        nev.createTempUser(newUser, function(newTempUser) {
+            // new user created
+            if (newTempUser) {
+                nev.registerTempUser(newTempUser);
+                res.json({msg: 'An email has been sent to you. Please check it to verify your account.'});
+
+            // user already exists in temporary collection!
+            } else {
+                res.json({msg: 'You have already signed up. Please check your email to verify your account.'});
+            }
+        });
+
+    // resend verification button was clicked
+    } else {
+        nev.resendVerificationEmail(email, function(userFound) {
+            if (userFound) {
+                res.json({msg: 'An email has been sent to you, yet again. Please check it to verify your account.'});
+            } else {
+                res.json({msg: 'Your verification code has expired. Please sign up again.'});
+            }
+        });
+    }
+});
+
+
+// user accesses the link that is sent
+app.get('/email-verification/:URL', function(req, res) {
+    var url = req.params.URL;
+
+    nev.confirmTempUser(url, function(userFound) {
+        if (userFound) {
+            setTimeout(function() {
+                res.redirect('/');
+            }, 5000);
+        }
+    });
+});
+
+
+app.listen(8000);
+console.log('Express & NEV example listening on 8000...');

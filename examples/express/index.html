@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+  </head>
+  <body>
+    <p>
+      <input id="email-reg" type="text" placeholder="Email">
+      <input id="pw-reg" type="password" placeholder="Password">
+      <button onclick="register()">Register</button><br>
+      <span id="msg-reg"></span>
+    </p>
+    <hr>
+    <p>
+      <input id="email-resend" type="text" placeholder="Email">
+      <button onclick="resend()">Resend Verification Email</button><br>
+      <span id="msg-resend"></span>
+    </p>
+
+
+
+    <script type="text/javascript">
+
+      var register = function() {
+        var email = $("#email-reg").val(),
+            pw = $("#pw-reg").val();
+
+        $.ajax({
+          url: '/',
+          type: 'POST',
+          data: {email: email, pw: pw, type: 'register'}
+        }).then(function(data) {
+          $("#msg-reg").text(data.msg);
+        });
+      };
+
+      var resend = function() {
+        var email = $("#email-resend").val();
+
+        $.ajax({
+          url: '/',
+          type: 'POST',
+          data: {email: email, type: 'resend'}
+        }).then(function(data) {
+          $("#msg-resend").text(data.msg);
+        });
+      };
+
+    </script>
+  </body>
+</html>
