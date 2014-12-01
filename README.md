@@ -120,3 +120,8 @@ here are the default options:
 
 ### todo
 - allow the length of the randomly-generated URL string to be customized
+
+### acknowledgements
+thanks to [Frank Cash](https://github.com/frankcash) for looking over my code.
+
+### license
