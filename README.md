@@ -8,11 +8,21 @@ the way this works (when this actually works) is as follows:
 - when the URL is accessed, the user's data is inserted into the real collection
 
 ### usage
-as this is a huge work in progress, this is just based off of the current repository's file structure.
+assuming you have a directory structure like so:
+
+```
+app/
+-- userModel.js
+-- tempUserModel.js
+node_modules/
+server.js
+```
+
+the following code takes place in server.js.
 
 ```javascript
-var nev = require('./index'),
-    User = require('./user'),
+var nev = require('email-verification'),
+    User = require('./app/userModel'),
     mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/YOUR_DB');
 ```
@@ -51,7 +61,7 @@ to create a temporary user model, you can either generate it using a built-in fu
 nev.generateTempUserModel(User);
 
 // using a predefined file
-var TempUser = require('./tempuser.js');
+var TempUser = require('./app/tempUserModel');
 nev.configure({
     tempUserModel: TempUser 
 });
@@ -202,17 +212,11 @@ var options = {
 - **confirmMailOptions**: the options that will be passed to ```nodemailer.createTransport({...}).sendMail``` when sending an email to notify the user that their account has been verified. you must include ```${URL}``` somewhere in the ```html``` and/or ```text``` fields to put the URL in these strings.
 - **confirmSendMailCallback**: the callback function that will be passed to ```nodemailer.createTransport({...}).sendMail``` when sending an email to notify the user that their account has been verified.
 
-### status
-- temporary users are created (with a random URL) and saved
-- possible to predefine a temporary user schema (which must be identical to the persistent user schema) or generate one based off of a persistent user schema (this should only be done once)
-- email is sent with the URL in it, which can be customized
-- temporary users can be confirmed and changed into persistent users
 
 ### todo
 - **development**: add grunt tasks
 - *new option*: default callback to ```createTempUser```
 - *new option*: custom field name for the randomly-generated URL
-- add working example with Express
 
 ### acknowledgements
 thanks to [Frank Cash](https://github.com/frankcash) for looking over my code.
