@@ -177,13 +177,14 @@ var registerTempUser = function(newTempUser) {
  * @func confirmTempUser
  * @param {string} url - the randomly generated URL assigned to a unique email
 */
-var confirmTempUser = function(url) {
+var confirmTempUser = function(url, callback) {
     var TempUser = options.tempUserModel;
 
     TempUser.findOne({GENERATED_VERIFYING_URL: url}, function(err, tempUserData) {
         if (err)
             throw err;
 
+        // temp user is found (i.e. user accessed URL before their data expired)
         if (tempUserData) {
             var userData = JSON.parse(JSON.stringify(tempUserData)), // copy data
                 User = options.persistentUserModel,
@@ -208,9 +209,38 @@ var confirmTempUser = function(url) {
                     }
                 });
             });
+
+            callback(true);
+
+        // temp user is not found (i.e. user accessed URL after data expired, or something else...)
+        } else {
+            callback(false);
         }
     });
 };
+
+
+/**
+ * Resend the verification email to the user given only their email.
+ *
+ * @func resendVerificationEmail
+ * @param {object} email - the user's email address
+*/
+var resendVerificationEmail = function(email, callback) {
+    options.tempUserModel.findOne({email: email}, function(err, tempUser) {
+        if (err)
+            throw err;
+
+        // user found (i.e. user re-requested verification email before expiration)
+        if (tempUser) {
+            sendVerificationEmail(tempUser.email, tempUser.GENERATED_VERIFYING_URL);
+            callback(true);
+        } else {
+            callback(false);
+        }
+    });
+};
+
 
 module.exports = {
     options: options,
@@ -219,4 +249,5 @@ module.exports = {
     createTempUser: createTempUser,
     registerTempUser: registerTempUser,
     confirmTempUser: confirmTempUser,
+    resendVerificationEmail: resendVerificationEmail,
 };

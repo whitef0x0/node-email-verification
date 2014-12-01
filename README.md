@@ -70,17 +70,78 @@ var newUser = User({
 });
 
 nev.createTempUser(newUser, function(newTempUser) {
-    // all is well
+    // a new user
     if (newTempUser) {
         nev.registerTempUser(newTempUser);
+
     // user already exists in our temporary collection
     } else {
-        console.log('')
+        console.log('redirect user or send flash message or whatever!');
     }
 });
 ```
 
 an email will be sent to the email address that the user signed up with. note that this does not handle hashing passwords - that must be done on your own terms.
+
+to move a user from the temporary storage to 'persistent' storage (e.g. when they actually access the URL we sent them), we call ```confirmTempUser```, which takes the URL as well as a callback with one argument (whether or not the user was found) as arguments:
+
+```javascript
+// get url somehow, e.g. from POST parameters
+nev.confirmTempUser(url, function(userFound) {
+    if (userFound)
+        console.log('user found and put in persistent storage');
+    else
+        console.log("user wasn't found, oh noez :(");
+});
+```
+
+if you want the user to be able to request another verification email, simply call ```resendVerificationEmail```, which takes the user's email address and a callback with one argument (again, whether or not the user was found) as arguments:
+
+```javascript
+// get the user's email somehow, e.g. from POST parameters
+nev.resendVerificationEmail(email, function(userFound) {
+    if (userFound)
+        console.log('user found, resent verification email');
+    else
+        console.log('UH OH SPAGHETTIO');
+});
+```
+
+### API
+#### configure(options)
+change the default configuration by passing an object of options; see the section below for a list of all options.
+
+#### generateTempUserModel(UserModel)
+generate a Mongoose Model for the temporary user based off of ```UserModel```, the persistent user model. the temporary model is essentially a duplicate of the persistent model except that it has the field ```{GENERATED_VERIFYING_URL: String}``` for the randomly generated URL. if the persistent model has the field ```createdAt```, then an expiration time (```expires```) added to it with a default value of 24 hours; otherwise, the field is created as such:
+
+```
+{
+    ...
+    createdAt: {
+        type: Date,
+        expires: 86400,
+        default: Date.now
+    }
+    ...
+}
+```
+
+note that ```createdAt``` will not be transferred to persistent storage (yet?).
+
+#### createTempUser(user, callback)
+attempt to create an instance of a temporary user model based off of an instance of a persistent user, ```user```. the callback function takes one parameter: the temporary user instance if the user doesn't exist in the temporary collection, or null otherwise. it is most convenient to call ```registerTempUser``` in the "success" case of the callback.
+
+if a temporary user model hasn't yet been defined (generated or otherwise), a TypeError will be thrown.
+
+#### registerTempUser(tempuser)
+saves the instance of the temporary user model, ```tempuser```, to the temporary collection, and then send an email to the user requested verification.
+
+#### confirmTempUser(url, callback)
+transfer a temporary user (found by ```url```) from the temporary collection to the persistent collection and remove the URL assigned to the user. the callback function takes one parameter: whether or not the user has been found in the temporary collection (which may be true or false depending on the time the user accessed the URL); this can be used for redirection and what not.
+
+#### resendVerificationEmail(email, callback)
+resend the verification email to a user, given their email. the callback function takes one parameter: whether or not the user has been found in the temporary collection (which may be true or false depending on the time the user accessed the URL).
+
 
 ### options
 here are the default options:
