@@ -5,14 +5,16 @@ var randtoken = require('rand-token'),
     nodemailer = require('nodemailer');
 
 
+// default options
 var options = {
     verificationURL: 'http://example.com/email-verification/${URL}',
+    URLLength: 48,
 
     //mongo-stuff
     persistentUserModel: null,
     tempUserModel: null,
     tempUserCollection: 'temporary_users',
-    hashPassword: false,
+    expirationTime: 86400,
 
     // emailing options
     transportOptions: {
@@ -22,17 +24,28 @@ var options = {
             pass: 'password'
         }
     },
-    mailOptions: {
+    verifyMailOptions: {
         from: 'Do Not Reply <user@gmail.com>',
         subject: 'Confirm your account',
-        html: '<p>Please confirm your account by clicking <a href="${URL}">this link</a>. If you are unable to do so, copy and ' +
+        html: '<p>Please verify your account by clicking <a href="${URL}">this link</a>. If you are unable to do so, copy and ' +
                 'paste the following link into your browser:</p><p>${URL}</p>',
-        text: 'Please confirm your account by clicking the following link, or by copying and pasting it into your browser: ${URL}'
+        text: 'Please verify your account by clicking the following link, or by copying and pasting it into your browser: ${URL}'
     },
-    sendMailCallback: function(err, info) {
+    verifySendMailCallback: function(err, info) {
         if (err) throw err;
         else console.log(info.response);
-    }
+    },
+    sendConfirmationEmail: true,
+    confirmMailOptions: {
+        from: 'Do Not Reply <user@gmail.com>',
+        subject: 'Successfully verified!',
+        html: '<p>Your account has been successfully verified.</p>',
+        text: 'Your account has been successfully verified.'
+    },
+    confirmSendMailCallback: function(err, info) {
+        if (err) throw err;
+        else console.log(info.response);
+    },
 };
 
 
@@ -54,7 +67,8 @@ var configure = function(o) {
 
 /**
  * Create a Mongoose Model for the temporary user, based off of the persistent 
- * User model, i.e. the temporary user inherits the persistent user.
+ * User model, i.e. the temporary user inherits the persistent user. An 
+ * additional field for the URL is created, as well as a TTL.
  *
  * @func generateTempUserModel
  * @param {object} User - the persistent User model.
@@ -68,6 +82,12 @@ var generateTempUserModel = function(User) {
         tempUserSchemaObject[field] = User.schema.paths[field].options.type; //lol
     });
     tempUserSchemaObject.GENERATED_VERIFYING_URL = String;
+
+    // create a TTL
+    if (tempUserSchemaObject.hasOwnProperty('createdAt'))
+        tempUserSchemaObject.createdAt.expires = options.expirationTime;
+    else
+        tempUserSchemaObject.createdAt = {expires: options.expirationTime, type: Date, default: Date.now};
 
     tempUserSchema = mongoose.Schema(tempUserSchemaObject);
     options.tempUserModel = mongoose.model(options.tempUserCollection, tempUserSchema);
@@ -102,13 +122,34 @@ var createTempUser = function(user, callback) {
                 Object.keys(user._doc).forEach(function(field) {
                     tempUserData[field] = user[field];
                 });
-                tempUserData.GENERATED_VERIFYING_URL = randtoken.generate(48);
+                tempUserData.GENERATED_VERIFYING_URL = randtoken.generate(options.URLLength);
                 callback(new options.tempUserModel(tempUserData));
             }
         });
 
     } else
         throw new TypeError("Temporary user model not defined. Either you forgot to generate one or you did not predefine one.");
+};
+
+
+/**
+ * Send an email to the user requesting confirmation.
+ *
+ * @func sendVerificationEmail
+ * @param {string} email - the user's email address.
+ * @param {string} url - the unique url generated for the user.
+*/
+var sendVerificationEmail = function(email, url) {
+    var r = /\$\{URL\}/g;
+
+    // inject newly-created URL into the email's body and FIRE
+    var URL = options.verificationURL.replace(r, url),
+        mailOptions = JSON.parse(JSON.stringify(options.verifyMailOptions));
+    mailOptions.to = email;
+    mailOptions.html = mailOptions.html.replace(r, URL);
+    mailOptions.text = mailOptions.text.replace(r, URL);
+
+    transporter.sendMail(mailOptions, options.verifySendMailCallback);
 };
 
 
@@ -124,16 +165,7 @@ var registerTempUser = function(newTempUser) {
     newTempUser.save(function(err) {
         if (err)
             throw err;
-
-        // inject newly-created URL into the email's body and FIRE
-        var email = newTempUser.email,
-            URL = options.verificationURL.replace(r, newTempUser.GENERATED_VERIFYING_URL),
-            mailOptions = JSON.parse(JSON.stringify(options.mailOptions));
-        mailOptions.to = email;
-        mailOptions.html = mailOptions.html.replace(r, URL);
-        mailOptions.text = mailOptions.text.replace(r, URL);
-
-        transporter.sendMail(mailOptions, options.sendMailCallback);
+        sendVerificationEmail(newTempUser.email, newTempUser.GENERATED_VERIFYING_URL);
     });
 };
 
@@ -160,7 +192,7 @@ var confirmTempUser = function(url) {
             delete userData['GENERATED_VERIFYING_URL'];
             user = new User(userData);
 
-            // save the 
+            // save the temporary user to the persistent user collection
             user.save(function(err) {
                 if (err)
                     throw err;
@@ -168,12 +200,12 @@ var confirmTempUser = function(url) {
                 TempUser.remove({GENERATED_VERIFYING_URL: url}, function(err) {
                     if (err)
                         throw err;
-                    var mailOptions = JSON.parse(JSON.stringify(options.mailOptions));
-                    mailOptions.to = userData.email;
-                    mailOptions.html = "Your account has been confirmed.";
-                    mailOptions.text = "Your account has been confirmed.";
 
-                    transporter.sendMail(mailOptions, options.sendMailCallback);
+                    if (options.sendConfirmationEmail) {
+                        var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
+                        mailOptions.to = userData.email;
+                        transporter.sendMail(mailOptions, options.confirmSendMailCallback);
+                    }
                 });
             });
         }

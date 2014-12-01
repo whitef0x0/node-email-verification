@@ -13,7 +13,6 @@ as this is a huge work in progress, this is just based off of the current reposi
 ```javascript
 var nev = require('./index'),
     User = require('./user'),
-    TempUser = require('./tempuser'),
     mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/YOUR_DB');
 ```
@@ -22,6 +21,7 @@ before doing anything, make sure to configure the options (see below for more ex
 ```javascript
 nev.configure({
     verificationURL: 'http://myawesomewebsite.com/email-verification/${URL}',
+    persistentUserModel: User,
     tempUserCollection: 'myawesomewebsite_tempusers',
 
     transportOptions: {
@@ -31,7 +31,7 @@ nev.configure({
             pass: 'mysupersecretpassword'
         }
     },
-    mailOptions: {
+    verifyMailOptions: {
         from: 'Do Not Reply <myawesomeemail_do_not_reply@gmail.com>',
         subject: 'Please confirm account',
         html: 'Click the following link to confirm your account:</p><p>${URL}</p>',
@@ -85,14 +85,15 @@ an email will be sent to the email address that the user signed up with. note th
 ### options
 here are the default options:
 ```javascript
-{
+var options = {
     verificationURL: 'http://example.com/email-verification/${URL}',
+    URLLength: 48,
 
-    //mongo-stuff
+    // mongo-stuff
     persistentUserModel: null,
     tempUserModel: null,
     tempUserCollection: 'temporary_users',
-    hashPassword: false,
+    expirationTime: 86400,
 
     // emailing options
     transportOptions: {
@@ -102,27 +103,43 @@ here are the default options:
             pass: 'password'
         }
     },
-    mailOptions: {
+    verifyMailOptions: {
         from: 'Do Not Reply <user@gmail.com>',
         subject: 'Confirm your account',
-        html: '<p>Please confirm your account by clicking <a href="${URL}">this link</a>. If you are unable to do so, copy and ' +
+        html: '<p>Please verify your account by clicking <a href="${URL}">this link</a>. If you are unable to do so, copy and ' +
                 'paste the following link into your browser:</p><p>${URL}</p>',
-        text: 'Please confirm your account by clicking the following link, or by copying and pasting it into your browser: ${URL}'
+        text: 'Please verify your account by clicking the following link, or by copying and pasting it into your browser: ${URL}'
     },
-    sendMailCallback: function(err, info) {
+    verifySendMailCallback: function(err, info) {
         if (err) throw err;
         else console.log(info.response);
-    }
+    },
+    sendConfirmationEmail: true,
+    confirmMailOptions: {
+        from: 'Do Not Reply <user@gmail.com>',
+        subject: 'Successfully verified!',
+        html: '<p>Your account has been successfully verified.</p>',
+        text: 'Your account has been successfully verified.'
+    },
+    confirmSendMailCallback: function(err, info) {
+        if (err) throw err;
+        else console.log(info.response);
+    },
 }
 ```
 
 - **verificationURL**: the URL for the user to click to verify their account. ```${URL}``` determines where the randomly generated part of the URL goes - it must be included.
+- **URLLength**: the length of the randomly-generated string.
 - **persistentUserModel**: the Mongoose Model for the persistent user.
 - **tempUserModel**: the Mongoose Model for the temporary user. you can generate the model by using ```generateTempUserModel``` and passing it the persistent User model you have defined, or you can define your own model in a separate file and pass it as an option in ```configure``` instead.
 - **tempUserCollection**: the name of the MongoDB collection for temporary users.
-- **transportOptions**: the options that will be passed to ```nodemailer.createTransport```. for more info, see the [NodeMailer documentation](https://github.com/andris9/Nodemailer) for more details.
-- **mailOptions**: the options that will be passed to ```nodemailer.createTransport({...}).sendMail```. you must include ```${URL}``` somewhere in the ```html``` and/or ```text``` fields to put the URL in these strings. for more info, see the [NodeMailer documentation](https://github.com/andris9/Nodemailer) for more details.
-- **sendMailCallback**: the callback function that will be passed to ```nodemailer.createTransport({...}).sendMail```. for more info, see the [NodeMailer documentation](https://github.com/andris9/Nodemailer) for more details.
+- **expirationTime**: the amount of time that the temporary user will be kept in collection, measured in seconds.
+- **transportOptions**: the options that will be passed to ```nodemailer.createTransport```.
+- **verifyMailOptions**: the options that will be passed to ```nodemailer.createTransport({...}).sendMail``` when sending an email for verification. you must include ```${URL}``` somewhere in the ```html``` and/or ```text``` fields to put the URL in these strings.
+- **verifySendMailCallback**: the callback function that will be passed to ```nodemailer.createTransport({...}).sendMail``` when sending an email for verification.
+- **sendConfirmationEmail**: send an email upon the user verifiying their account to notify them of verification.
+- **confirmMailOptions**: the options that will be passed to ```nodemailer.createTransport({...}).sendMail``` when sending an email to notify the user that their account has been verified. you must include ```${URL}``` somewhere in the ```html``` and/or ```text``` fields to put the URL in these strings.
+- **confirmSendMailCallback**: the callback function that will be passed to ```nodemailer.createTransport({...}).sendMail``` when sending an email to notify the user that their account has been verified.
 
 ### status
 - temporary users are created (with a random URL) and saved
@@ -131,12 +148,10 @@ here are the default options:
 - temporary users can be confirmed and changed into persistent users
 
 ### todo
-- **required**: add a TTL to the temporary users
 - **development**: add grunt tasks
-- *new option*: the length of the randomly-generated URL string to be customized
 - *new option*: default callback to ```createTempUser```
-- *new option*: allow for sending of an email to notify the user that their account has been confirmed
-- *new option*: customize confirmation email
+- *new option*: custom field name for the randomly-generated URL
+- add working example with Express
 
 ### acknowledgements
 thanks to [Frank Cash](https://github.com/frankcash) for looking over my code.
