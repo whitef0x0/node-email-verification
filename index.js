@@ -4,10 +4,12 @@ var randtoken = require('rand-token'),
     mongoose = require('mongoose'),
     nodemailer = require('nodemailer');
 
+
 var options = {
     verificationURL: 'http://example.com/email-verification/${URL}',
 
     //mongo-stuff
+    persistentUserModel: null,
     tempUserModel: null,
     tempUserCollection: 'temporary_users',
     hashPassword: false,
@@ -63,8 +65,7 @@ var generateTempUserModel = function(User) {
 
     // copy over the attributes of the schema
     Object.keys(User.schema.paths).forEach(function(field) {
-        if (field !== '_id' && field !== '__v')
-            tempUserSchemaObject[field] = User.schema.paths[field].options.type; //lol
+        tempUserSchemaObject[field] = User.schema.paths[field].options.type; //lol
     });
     tempUserSchemaObject.GENERATED_VERIFYING_URL = String;
 
@@ -92,7 +93,7 @@ var createTempUser = function(user, callback) {
             // user has already signed up...
             if (existingUser)
                 callback(null);
-            
+
             else {
                 var tempUserData = {},
                     newTempUser;
@@ -138,15 +139,44 @@ var registerTempUser = function(newTempUser) {
 
 
 /**
- * Assign a randomly-generated URL to a user and save the user to the temporary 
- * collection, and send an email to the user requesting confirmation.
+ * Transfer a temporary user from the temporary collection to the persistent 
+ * user collection, removing the URL assigned to it.
  *
  * @func confirmTempUser
- * @param {object} user - an instance of the persistent User model
+ * @param {string} url - the randomly generated URL assigned to a unique email
 */
 var confirmTempUser = function(url) {
-    options.tempUserModel.findOne({GENERATED_VERIFYING_URL: url}, function(err, doc) {
+    var TempUser = options.tempUserModel;
 
+    TempUser.findOne({GENERATED_VERIFYING_URL: url}, function(err, tempUserData) {
+        if (err)
+            throw err;
+
+        if (tempUserData) {
+            var userData = JSON.parse(JSON.stringify(tempUserData)), // copy data
+                User = options.persistentUserModel,
+                user;
+
+            delete userData['GENERATED_VERIFYING_URL'];
+            user = new User(userData);
+
+            // save the 
+            user.save(function(err) {
+                if (err)
+                    throw err;
+
+                TempUser.remove({GENERATED_VERIFYING_URL: url}, function(err) {
+                    if (err)
+                        throw err;
+                    var mailOptions = JSON.parse(JSON.stringify(options.mailOptions));
+                    mailOptions.to = userData.email;
+                    mailOptions.html = "Your account has been confirmed.";
+                    mailOptions.text = "Your account has been confirmed.";
+
+                    transporter.sendMail(mailOptions, options.sendMailCallback);
+                });
+            });
+        }
     });
 };
 
@@ -156,4 +186,5 @@ module.exports = {
     generateTempUserModel: generateTempUserModel,
     createTempUser: createTempUser,
     registerTempUser: registerTempUser,
+    confirmTempUser: confirmTempUser,
 };

@@ -89,6 +89,7 @@ here are the default options:
     verificationURL: 'http://example.com/email-verification/${URL}',
 
     //mongo-stuff
+    persistentUserModel: null,
     tempUserModel: null,
     tempUserCollection: 'temporary_users',
     hashPassword: false,
@@ -116,6 +117,7 @@ here are the default options:
 ```
 
 - **verificationURL**: the URL for the user to click to verify their account. ```${URL}``` determines where the randomly generated part of the URL goes - it must be included.
+- **persistentUserModel**: the Mongoose Model for the persistent user.
 - **tempUserModel**: the Mongoose Model for the temporary user. you can generate the model by using ```generateTempUserModel``` and passing it the persistent User model you have defined, or you can define your own model in a separate file and pass it as an option in ```configure``` instead.
 - **tempUserCollection**: the name of the MongoDB collection for temporary users.
 - **transportOptions**: the options that will be passed to ```nodemailer.createTransport```. for more info, see the [NodeMailer documentation](https://github.com/andris9/Nodemailer) for more details.
@@ -126,11 +128,15 @@ here are the default options:
 - temporary users are created (with a random URL) and saved
 - possible to predefine a temporary user schema (which must be identical to the persistent user schema) or generate one based off of a persistent user schema (this should only be done once)
 - email is sent with the URL in it, which can be customized
+- temporary users can be confirmed and changed into persistent users
 
 ### todo
 - **required**: add a TTL to the temporary users
+- **development**: add grunt tasks
 - *new option*: the length of the randomly-generated URL string to be customized
 - *new option*: default callback to ```createTempUser```
+- *new option*: allow for sending of an email to notify the user that their account has been confirmed
+- *new option*: customize confirmation email
 
 ### acknowledgements
 thanks to [Frank Cash](https://github.com/frankcash) for looking over my code.
