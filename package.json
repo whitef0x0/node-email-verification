@@ -22,6 +22,7 @@
   "dependencies": {
     "bcrypt": "^0.8.0",
     "mongoose": "^3.8.19",
-    "rand-token": "^0.2.1"
+    "rand-token": "^0.2.1",
+		"nodemailer" : "*"
   }
 }
