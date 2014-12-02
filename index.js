@@ -14,6 +14,7 @@ var options = {
     persistentUserModel: null,
     tempUserModel: null,
     tempUserCollection: 'temporary_users',
+    URLFieldName: 'GENERATED_VERIFYING_URL',
     expirationTime: 86400,
 
     // emailing options
@@ -81,7 +82,7 @@ var generateTempUserModel = function(User) {
     Object.keys(User.schema.paths).forEach(function(field) {
         tempUserSchemaObject[field] = User.schema.paths[field].options.type; //lol
     });
-    tempUserSchemaObject.GENERATED_VERIFYING_URL = String;
+    tempUserSchemaObject[options.URLFieldName] = String;
 
     // create a TTL
     if (tempUserSchemaObject.hasOwnProperty('createdAt'))
@@ -122,7 +123,7 @@ var createTempUser = function(user, callback) {
                 Object.keys(user._doc).forEach(function(field) {
                     tempUserData[field] = user[field];
                 });
-                tempUserData.GENERATED_VERIFYING_URL = randtoken.generate(options.URLLength);
+                tempUserData[options.URLFieldName] = randtoken.generate(options.URLLength);
                 callback(new options.tempUserModel(tempUserData));
             }
         });
@@ -165,7 +166,7 @@ var registerTempUser = function(newTempUser) {
     newTempUser.save(function(err) {
         if (err)
             throw err;
-        sendVerificationEmail(newTempUser.email, newTempUser.GENERATED_VERIFYING_URL);
+        sendVerificationEmail(newTempUser.email, newTempUser[options.URLFieldName]);
     });
 };
 
@@ -178,9 +179,11 @@ var registerTempUser = function(newTempUser) {
  * @param {string} url - the randomly generated URL assigned to a unique email
 */
 var confirmTempUser = function(url, callback) {
-    var TempUser = options.tempUserModel;
+    var TempUser = options.tempUserModel,
+        query = {};
+    query[options.URLFieldName] = url;
 
-    TempUser.findOne({GENERATED_VERIFYING_URL: url}, function(err, tempUserData) {
+    TempUser.findOne(query, function(err, tempUserData) {
         if (err)
             throw err;
 
@@ -190,7 +193,7 @@ var confirmTempUser = function(url, callback) {
                 User = options.persistentUserModel,
                 user;
 
-            delete userData['GENERATED_VERIFYING_URL'];
+            delete userData[options.URLFieldName];
             user = new User(userData);
 
             // save the temporary user to the persistent user collection
@@ -198,7 +201,7 @@ var confirmTempUser = function(url, callback) {
                 if (err)
                     throw err;
 
-                TempUser.remove({GENERATED_VERIFYING_URL: url}, function(err) {
+                TempUser.remove(query, function(err) {
                     if (err)
                         throw err;
 
@@ -233,7 +236,7 @@ var resendVerificationEmail = function(email, callback) {
 
         // user found (i.e. user re-requested verification email before expiration)
         if (tempUser) {
-            sendVerificationEmail(tempUser.email, tempUser.GENERATED_VERIFYING_URL);
+            sendVerificationEmail(tempUser.email, tempUser[options.URLFieldName]);
             callback(true);
         } else {
             callback(false);

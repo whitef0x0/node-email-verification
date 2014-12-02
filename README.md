@@ -62,7 +62,7 @@ nev.configure({
 
 any options not included in the object you pass will take on the default value specified in the section below. calling `configure` multiple times with new options will simply change the previously defined options.
 
-to create a temporary user model, you can either generate it using a built-in function, or you can predefine it in a separate file. if you are pre-defining it, it must be IDENTICAL to the user model with an extra field `GENERATED_VERIFYING_URL: String`. **you're just better off generating a model**.
+to create a temporary user model, you can either generate it using a built-in function, or you can predefine it in a separate file. if you are pre-defining it, it must be IDENTICAL to the user model with an extra field for the URL; the default one is `GENERATED_VERIFYING_URL: String`. **you're just better off generating a model**.
 
 ```javascript
 // configuration options go here...
@@ -132,10 +132,10 @@ to see a fully functioning example that uses Express as the backend, check out t
 
 ## API
 #### `configure(options)`
-change the default configuration by passing an object of options; see the section below for a list of all options.
+changes the default configuration by passing an object of options; see the section below for a list of all options.
 
 #### `generateTempUserModel(UserModel)`
-generate a Mongoose Model for the temporary user based off of `UserModel`, the persistent user model. the temporary model is essentially a duplicate of the persistent model except that it has the field `{GENERATED_VERIFYING_URL: String}` for the randomly generated URL. if the persistent model has the field `createdAt`, then an expiration time (`expires`) added to it with a default value of 24 hours; otherwise, the field is created as such:
+generates a Mongoose Model for the temporary user based off of `UserModel`, the persistent user model. the temporary model is essentially a duplicate of the persistent model except that it has the field `{GENERATED_VERIFYING_URL: String}` for the randomly generated URL by default (the field name can be changed in the options). if the persistent model has the field `createdAt`, then an expiration time (`expires`) is added to it with a default value of 24 hours; otherwise, the field is created as such:
 
 ```
 {
@@ -160,10 +160,10 @@ if a temporary user model hasn't yet been defined (generated or otherwise), a Ty
 saves the instance of the temporary user model, `tempuser`, to the temporary collection, and then sends an email to the user requesting verification.
 
 #### `confirmTempUser(url, callback(userTransferred))`
-transfer a temporary user (found by `url`) from the temporary collection to the persistent collection and remove the URL assigned to the user. `userTransferred` is `true` if  the user has been successfully transferred (i.e. the user accessed URL before expiration) and `false` otherwise; this can be used for redirection and what not.
+transfers a temporary user (found by `url`) from the temporary collection to the persistent collection and remove the URL assigned to the user. `userTransferred` is `true` if  the user has been successfully transferred (i.e. the user accessed URL before expiration) and `false` otherwise; this can be used for redirection and what not.
 
 #### `resendVerificationEmail(email, callback(userFound))`
-resend the verification email to a user, given their email. `userFound` is `true` if the user has been found in the temporary collection (i.e. their data hasn't expired yet) and `false` otherwise.
+resends the verification email to a user, given their email. `userFound` is `true` if the user has been found in the temporary collection (i.e. their data hasn't expired yet) and `false` otherwise.
 
 
 ### options
@@ -177,6 +177,7 @@ var options = {
     persistentUserModel: null,
     tempUserModel: null,
     tempUserCollection: 'temporary_users',
+    URLFieldName: 'GENERATED_VERIFYING_URL',
     expirationTime: 86400,
 
     // emailing options
@@ -217,6 +218,7 @@ var options = {
 - **persistentUserModel**: the Mongoose Model for the persistent user.
 - **tempUserModel**: the Mongoose Model for the temporary user. you can generate the model by using `generateTempUserModel` and passing it the persistent User model you have defined, or you can define your own model in a separate file and pass it as an option in `configure` instead.
 - **tempUserCollection**: the name of the MongoDB collection for temporary users.
+- **URLFieldName**: the field name for the randomly-generated URL.
 - **expirationTime**: the amount of time that the temporary user will be kept in collection, measured in seconds.
 - **transportOptions**: the options that will be passed to `nodemailer.createTransport`.
 - **verifyMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email for verification. you must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
@@ -229,8 +231,7 @@ var options = {
 - **development**: add a task runner
 - **development**: throw more errors
 - *nice to have*: working examples with Sails and HapiJS (maybe Koa and Total as well?)
-- *new option*: default callback to `createTempUser`
-- *new option*: custom field name for the randomly-generated URL
+- *option*: custom email field for User schema (currently defaults to just `{email: String}`)
 
 ### acknowledgements
 thanks to [Frank Cash](https://github.com/frankcash) for looking over my code.

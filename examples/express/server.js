@@ -3,7 +3,7 @@ var express = require('express'),
     app = express(),
     mongoose = require('mongoose'),
     nev = require('../../index');
-mongoose.connect('mongodb://localhost/YOUR_DATABASE_NAME');
+mongoose.connect('mongodb://localhost/YOUR_DB');
 
 // our persistent user model
 var User = require('./app/userModel');
