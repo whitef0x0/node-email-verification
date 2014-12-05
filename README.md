@@ -27,7 +27,7 @@ node_modules/
 server.js
 ```
 
-the following code takes place in server.js.
+all of the code in this section takes place in server.js.
 
 ```javascript
 var nev = require('email-verification'),
@@ -177,6 +177,7 @@ var options = {
     persistentUserModel: null,
     tempUserModel: null,
     tempUserCollection: 'temporary_users',
+    emailFieldName: 'email',
     URLFieldName: 'GENERATED_VERIFYING_URL',
     expirationTime: 86400,
 
@@ -218,6 +219,7 @@ var options = {
 - **persistentUserModel**: the Mongoose Model for the persistent user.
 - **tempUserModel**: the Mongoose Model for the temporary user. you can generate the model by using `generateTempUserModel` and passing it the persistent User model you have defined, or you can define your own model in a separate file and pass it as an option in `configure` instead.
 - **tempUserCollection**: the name of the MongoDB collection for temporary users.
+- **emailFieldName**: the field name for the user's email. if the field is nested within another object(s), use dot notation to access it, e.g. `{local: {email: ...}}` would use `'local.email'`.
 - **URLFieldName**: the field name for the randomly-generated URL.
 - **expirationTime**: the amount of time that the temporary user will be kept in collection, measured in seconds.
 - **transportOptions**: the options that will be passed to `nodemailer.createTransport`.
@@ -228,10 +230,9 @@ var options = {
 - **confirmSendMailCallback**: the callback function that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email to notify the user that their account has been verified.
 
 ### todo
-- **development**: add a task runner
+- **development**: add a task runner WE NEED TESTS
 - **development**: throw more errors
 - *nice to have*: working examples with Sails and HapiJS (maybe Koa and Total as well?)
-- *option*: custom email field for User schema (currently defaults to just `{email: String}`)
 
 ### acknowledgements
 thanks to [Frank Cash](https://github.com/frankcash) for looking over my code.

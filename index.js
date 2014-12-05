@@ -4,6 +4,27 @@ var randtoken = require('rand-token'),
     mongoose = require('mongoose'),
     nodemailer = require('nodemailer');
 
+/**
+ * Retrieve a nested value of an object given a string, using dot notation.
+ *
+ * @func getNestedValue
+ * @param {object} obj - object to retrieve the value from
+ * @param {string} path - path to value
+ * @param {string} def - default value to return if not found
+*/
+var getNestedValue = function(obj, path, def){
+    var i, len;
+
+    for(i = 0,path = path.split('.'), len = path.length; i < len; i++){
+        if(!obj || typeof obj !== 'object') return def;
+        obj = obj[path[i]];
+    }
+
+    if(obj === undefined)
+        return def;
+    return obj;
+};
+
 
 // default options
 var options = {
@@ -14,6 +35,7 @@ var options = {
     persistentUserModel: null,
     tempUserModel: null,
     tempUserCollection: 'temporary_users',
+    emailFieldName: 'email',
     URLFieldName: 'GENERATED_VERIFYING_URL',
     expirationTime: 86400,
 
@@ -80,7 +102,7 @@ var generateTempUserModel = function(User) {
 
     // copy over the attributes of the schema
     Object.keys(User.schema.paths).forEach(function(field) {
-        tempUserSchemaObject[field] = User.schema.paths[field].options.type; //lol
+        tempUserSchemaObject[field] = User.schema.paths[field].options;
     });
     tempUserSchemaObject[options.URLFieldName] = String;
 
@@ -107,7 +129,10 @@ var generateTempUserModel = function(User) {
 */
 var createTempUser = function(user, callback) {
     if (options.tempUserModel) {
-        options.tempUserModel.findOne({email: user.email}, function(err, existingUser) {
+        var query = {};
+        query[options.emailFieldName] = user[options.emailFieldName];
+
+        options.tempUserModel.findOne(query, function(err, existingUser) {
             if (err)
                 throw err;
 
@@ -166,7 +191,8 @@ var registerTempUser = function(newTempUser) {
     newTempUser.save(function(err) {
         if (err)
             throw err;
-        sendVerificationEmail(newTempUser.email, newTempUser[options.URLFieldName]);
+        sendVerificationEmail(getNestedValue(newTempUser, options.emailFieldName), 
+            newTempUser[options.URLFieldName]);
     });
 };
 
@@ -207,7 +233,7 @@ var confirmTempUser = function(url, callback) {
 
                     if (options.sendConfirmationEmail) {
                         var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
-                        mailOptions.to = userData.email;
+                        mailOptions.to = getNestedValue(userData, options.emailFieldName);
                         transporter.sendMail(mailOptions, options.confirmSendMailCallback);
                     }
                 });
@@ -230,13 +256,16 @@ var confirmTempUser = function(url, callback) {
  * @param {object} email - the user's email address
 */
 var resendVerificationEmail = function(email, callback) {
-    options.tempUserModel.findOne({email: email}, function(err, tempUser) {
+    var query = {};
+    query[options.emailFieldName] = email;
+
+    options.tempUserModel.findOne(query, function(err, tempUser) {
         if (err)
             throw err;
 
         // user found (i.e. user re-requested verification email before expiration)
         if (tempUser) {
-            sendVerificationEmail(tempUser.email, tempUser[options.URLFieldName]);
+            sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName]);
             callback(true);
         } else {
             callback(false);
