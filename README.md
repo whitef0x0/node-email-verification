@@ -1,4 +1,6 @@
 # node email verification
+[![NPM](https://nodei.co/npm/email-verification.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/email-verification/)
+
 verify user signup with node and mongodb
 
 the way this works is as follows:
