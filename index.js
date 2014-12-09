@@ -45,6 +45,8 @@ var options = {
         auth: {
             user: 'user@gmail.com',
             pass: 'password'
+
+
         }
     },
     verifyMailOptions: {
@@ -89,8 +91,8 @@ var configure = function(o) {
 
 
 /**
- * Create a Mongoose Model for the temporary user, based off of the persistent 
- * User model, i.e. the temporary user inherits the persistent user. An 
+ * Create a Mongoose Model for the temporary user, based off of the persistent
+ * User model, i.e. the temporary user inherits the persistent user. An
  * additional field for the URL is created, as well as a TTL.
  *
  * @func generateTempUserModel
@@ -118,9 +120,9 @@ var generateTempUserModel = function(User) {
 
 
 /**
- * Attempt to create an instance of a temporary user based off of an instance of a 
- * persistent user. If user already exists in the temporary collection, passes null 
- * to the callback function; otherwise, passes the instance to the callback, with a 
+ * Attempt to create an instance of a temporary user based off of an instance of a
+ * persistent user. If user already exists in the temporary collection, passes null
+ * to the callback function; otherwise, passes the instance to the callback, with a
  * randomly generated URL associated to it.
  *
  * @func createTempUser
@@ -180,7 +182,7 @@ var sendVerificationEmail = function(email, url) {
 
 
 /**
- * Save the user to the temporary collection, and send an email to the user 
+ * Save the user to the temporary collection, and send an email to the user
  * requesting confirmation.
  *
  * @func registerTempUser
@@ -191,14 +193,14 @@ var registerTempUser = function(newTempUser) {
     newTempUser.save(function(err) {
         if (err)
             throw err;
-        sendVerificationEmail(getNestedValue(newTempUser, options.emailFieldName), 
+        sendVerificationEmail(getNestedValue(newTempUser, options.emailFieldName),
             newTempUser[options.URLFieldName]);
     });
 };
 
 
 /**
- * Transfer a temporary user from the temporary collection to the persistent 
+ * Transfer a temporary user from the temporary collection to the persistent
  * user collection, removing the URL assigned to it.
  *
  * @func confirmTempUser
@@ -282,4 +284,5 @@ module.exports = {
     registerTempUser: registerTempUser,
     confirmTempUser: confirmTempUser,
     resendVerificationEmail: resendVerificationEmail,
+    sendVerificationEmail: sendVerificationEmail,
 };
