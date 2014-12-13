@@ -1,11 +1,14 @@
 var assert = require('chai').assert;
 var should = require('chai').should();
 var expect = require('chai').expect;
+var mongoose = require('mongoose');
 var main = require('../index');
-describe("main tests", function(){
+var User = require('./user'); // sample user schema
 
 
-
+describe("config & set up tests", function(){
+  before(function(){
+  })
 
   it("Tests the option object", function(){
     assert.typeOf(main.options.URLLength, 'number', "URL Length must be a number");
@@ -13,8 +16,40 @@ describe("main tests", function(){
     assert.typeOf(main.options.verificationURL, 'string', "URL for verification must be a string");
   });
 
-
-  it("Tests sending email", function(done){
-    main.sendVerificationEmail("fizzbuzz@foo.bar","foo");
-  });
 });
+
+describe("db tests", function(){
+
+  it("Tests sending email", function(){
+    main.sendVerificationEmail("foobar@fizzbuzz.com","foo");
+  });
+
+  it("Tests adding a temp user", function(done){
+
+
+    newUser = new User({
+      email: "foobar@fizzbuzz.com",
+      pw: "pass"
+    })
+
+    main.createTempUser(newUser, function(newTempUser) {
+      // new user created
+      if (newTempUser) {
+        main.registerTempUser(newTempUser);
+        // user already exists in temporary collection!
+      }
+    });
+
+
+    main.options.tempUserModel.findOne({ email : newUser.email }).exec( function(err, result){
+      should.not.exist(err);
+      should.exist(result);
+      result.should.have.property('email').with.length(newUser.email.length);
+      result.should.have.property('pw').with.length(newUser.pw.length);
+      done();
+    });
+
+
+  })
+
+})
