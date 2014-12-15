@@ -3,8 +3,9 @@ var should = require('chai').should();
 var expect = require('chai').expect;
 var mongoose = require('mongoose');
 var main = require('../index');
-var User = require('./user'); // sample user schema
+var user = require('../examples/express/app/userModel'); // sample user schema
 
+main.generateTempUserModel(user);
 
 describe("config & set up tests", function(){
   before(function(){
@@ -27,7 +28,7 @@ describe("db tests", function(){
   it("Tests adding a temp user", function(done){
 
 
-    newUser = new User({
+    newUser = new user({
       email: "foobar@fizzbuzz.com",
       pw: "pass"
     })
