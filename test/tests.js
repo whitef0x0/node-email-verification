@@ -8,8 +8,6 @@ var user = require('../examples/express/app/userModel'); // sample user schema
 main.generateTempUserModel(user);
 
 describe("config & set up tests", function(){
-  before(function(){
-  })
 
   it("Tests the option object", function(){
     assert.typeOf(main.options.URLLength, 'number', "URL Length must be a number");
@@ -20,18 +18,18 @@ describe("config & set up tests", function(){
 });
 
 describe("db tests", function(){
+  before(function(){
+    newUser = new user({
+      email: "foobar@fizzbuzz.com",
+      pw: "pass"
+    });
+  });
 
   it("Tests sending email", function(){
     main.sendVerificationEmail("foobar@fizzbuzz.com","foo");
   });
 
   it("Tests adding a temp user", function(done){
-
-
-    newUser = new user({
-      email: "foobar@fizzbuzz.com",
-      pw: "pass"
-    })
 
     main.createTempUser(newUser, function(newTempUser) {
       // new user created
@@ -51,6 +49,6 @@ describe("db tests", function(){
     });
 
 
-  })
+  });
 
-})
+});
