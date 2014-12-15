@@ -3,6 +3,7 @@
 var randtoken = require('rand-token'),
     mongoose = require('mongoose'),
     nodemailer = require('nodemailer');
+// mongoose.connect("mongodb://localhost/YOUR_DB"); // needed for testing
 
 /**
  * Retrieve a nested value of an object given a string, using dot notation.
@@ -45,8 +46,6 @@ var options = {
         auth: {
             user: 'user@gmail.com',
             pass: 'password'
-
-
         }
     },
     verifyMailOptions: {
