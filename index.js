@@ -114,6 +114,12 @@ var generateTempUserModel = function(User) {
         tempUserSchemaObject.createdAt = {expires: options.expirationTime, type: Date, default: Date.now};
 
     tempUserSchema = mongoose.Schema(tempUserSchemaObject);
+
+    // copy over the methods of the schema
+    Object.keys(User.schema.methods).forEach(function(meth) { // tread lightly 
+        tempUserSchema.methods[meth] = User.schema.methods[meth];
+    });
+    
     options.tempUserModel = mongoose.model(options.tempUserCollection, tempUserSchema);
 };
 
@@ -129,33 +135,32 @@ var generateTempUserModel = function(User) {
  * @return {object} null if user already exists; Mongoose Model instance otherwise
 */
 var createTempUser = function(user, callback) {
-    if (options.tempUserModel) {
-        var query = {};
-        query[options.emailFieldName] = user[options.emailFieldName];
-
-        options.tempUserModel.findOne(query, function(err, existingUser) {
-            if (err)
-                throw err;
-
-            // user has already signed up...
-            if (existingUser)
-                callback(null);
-
-            else {
-                var tempUserData = {},
-                    newTempUser;
-
-                // copy the credentials for the user
-                Object.keys(user._doc).forEach(function(field) {
-                    tempUserData[field] = user[field];
-                });
-                tempUserData[options.URLFieldName] = randtoken.generate(options.URLLength);
-                callback(new options.tempUserModel(tempUserData));
-            }
-        });
-
-    } else
+    if (!options.tempUserModel)
         throw new TypeError("Temporary user model not defined. Either you forgot to generate one or you did not predefine one.");
+
+    var query = {};
+    query[options.emailFieldName] = user[options.emailFieldName];
+
+    options.tempUserModel.findOne(query, function(err, existingUser) {
+        if (err)
+            throw err;
+
+        // user has already signed up...
+        if (existingUser)
+            callback(null);
+
+        else {
+            var tempUserData = {},
+                newTempUser;
+
+            // copy the credentials for the user
+            Object.keys(user._doc).forEach(function(field) {
+                tempUserData[field] = user[field];
+            });
+            tempUserData[options.URLFieldName] = randtoken.generate(options.URLLength);
+            callback(new options.tempUserModel(tempUserData));
+        }
+    });
 };
 
 

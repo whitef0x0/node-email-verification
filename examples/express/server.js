@@ -46,6 +46,8 @@ app.post('/', function(req, res) {
         nev.createTempUser(newUser, function(newTempUser) {
             // new user created
             if (newTempUser) {
+                // hash the password here
+                newTempUser.pw = newTempUser.generateHash(newTempUser.pw);
                 nev.registerTempUser(newTempUser);
                 res.json({msg: 'An email has been sent to you. Please check it to verify your account.'});
 

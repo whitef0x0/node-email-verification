@@ -104,7 +104,7 @@ nev.createTempUser(newUser, function(newTempUser) {
 });
 ```
 
-an email will be sent to the email address that the user signed up with. note that this does not handle hashing passwords - that must be done on your own terms.
+an email will be sent to the email address that the user signed up with. note that this does not handle hashing passwords - that must be done on your own terms. to see how to do this, check the Express example.
 
 to move a user from the temporary storage to 'persistent' storage (e.g. when they actually access the URL we sent them), we call `confirmTempUser`, which takes the URL as well as a callback with one argument (whether or not the user was found) as arguments. if the callback's argument is false, it is most likely because their data expired.
 
