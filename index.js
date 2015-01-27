@@ -108,10 +108,7 @@ var generateTempUserModel = function(User) {
     tempUserSchemaObject[options.URLFieldName] = String;
 
     // create a TTL
-    if (tempUserSchemaObject.hasOwnProperty('createdAt'))
-        tempUserSchemaObject.createdAt.expires = options.expirationTime;
-    else
-        tempUserSchemaObject.createdAt = {expires: options.expirationTime, type: Date, default: Date.now};
+    tempUserSchemaObject.createdAt = {type: Date, expires: options.expirationTime.toString() + 's', default: Date.now};
 
     tempUserSchema = mongoose.Schema(tempUserSchemaObject);
 

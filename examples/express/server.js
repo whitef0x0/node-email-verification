@@ -12,6 +12,7 @@ var User = require('./app/userModel');
 // NEV configuration =====================
 nev.configure({
     persistentUserModel: User,
+    expirationTime: 600,  // 10 minutes
 
     verificationURL: 'http://localhost:8000/email-verification/${URL}',
     transportOptions: {

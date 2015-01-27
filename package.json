@@ -1,6 +1,6 @@
 {
   "name": "email-verification",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Verify email sign-up using MongoDB.",
   "main": "index.js",
   "scripts": {
