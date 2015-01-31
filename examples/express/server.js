@@ -75,8 +75,8 @@ app.post('/', function(req, res) {
 app.get('/email-verification/:URL', function(req, res) {
     var url = req.params.URL;
 
-    nev.confirmTempUser(url, function(userFound) {
-        if (userFound) {
+    nev.confirmTempUser(url, function(user) {
+        if (user) {
             setTimeout(function() {
                 res.redirect('/');
             }, 5000);

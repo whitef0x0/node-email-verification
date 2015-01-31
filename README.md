@@ -106,12 +106,12 @@ nev.createTempUser(newUser, function(newTempUser) {
 
 an email will be sent to the email address that the user signed up with. note that this does not handle hashing passwords - that must be done on your own terms. to see how to do this, check the Express example.
 
-to move a user from the temporary storage to 'persistent' storage (e.g. when they actually access the URL we sent them), we call `confirmTempUser`, which takes the URL as well as a callback with one argument (whether or not the user was found) as arguments. if the callback's argument is false, it is most likely because their data expired.
+to move a user from the temporary storage to 'persistent' storage (e.g. when they actually access the URL we sent them), we call `confirmTempUser`, which takes the URL as well as a callback with one argument (the instance of the User model, or null) as arguments. if the callback's argument is null, it is most likely because their data expired.
 
 ```javascript
 var url = '...';
-nev.confirmTempUser(url, function(userFound) {
-    if (userFound)
+nev.confirmTempUser(url, function(user) {
+    if (user)
         // redirect to their profile
     else
         // redirect to sign-up
@@ -161,8 +161,8 @@ if a temporary user model hasn't yet been defined (generated or otherwise), a Ty
 #### `registerTempUser(tempuser)`
 saves the instance of the temporary user model, `tempuser`, to the temporary collection, and then sends an email to the user requesting verification.
 
-#### `confirmTempUser(url, callback(userTransferred))`
-transfers a temporary user (found by `url`) from the temporary collection to the persistent collection and remove the URL assigned to the user. `userTransferred` is `true` if  the user has been successfully transferred (i.e. the user accessed URL before expiration) and `false` otherwise; this can be used for redirection and what not.
+#### `confirmTempUser(url, callback(user))`
+transfers a temporary user (found by `url`) from the temporary collection to the persistent collection and remove the URL assigned to the user. `userTransferred` is the persistent user instance if  the user has been successfully transferred (i.e. the user accessed URL before expiration) and `null` otherwise; this can be used for redirection and what not.
 
 #### `resendVerificationEmail(email, callback(userFound))`
 resends the verification email to a user, given their email. `userFound` is `true` if the user has been found in the temporary collection (i.e. their data hasn't expired yet) and `false` otherwise.
