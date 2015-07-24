@@ -25,6 +25,7 @@
   "dependencies": {
     "mongoose": "^3.8.19",
     "nodemailer": "^1.3.0",
+    "nodemailer-mandrill-transport": "^0.3.0",
     "rand-token": "^0.2.1"
   },
   "devDependencies": {
