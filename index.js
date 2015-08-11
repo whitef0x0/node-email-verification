@@ -4,7 +4,6 @@ var randtoken = require('rand-token'),
     mongoose = require('mongoose'),
     nodemailer = require('nodemailer'),
     async = require('async');
-    mongoose.connect("mongodb://localhost/test_database"); // needed for testing
 
 /**
  * Retrieve a nested value of an object given a string, using dot notation.

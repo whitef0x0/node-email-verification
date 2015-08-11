@@ -5,6 +5,8 @@ var mongoose = require('mongoose');
 var nev = require('../index');
 var stubTransport = require('nodemailer-stub-transport');
 var user = require('../examples/express/app/userModel'); // sample user schema
+mongoose.connect("mongodb://localhost/test_database"); // needed for testing
+
 
 nev.generateTempUserModel(user);
 nev.configure({
