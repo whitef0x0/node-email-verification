@@ -2,8 +2,9 @@
 
 var randtoken = require('rand-token'),
     mongoose = require('mongoose'),
-    nodemailer = require('nodemailer');
-// mongoose.connect("mongodb://localhost/YOUR_DB"); // needed for testing
+    nodemailer = require('nodemailer'),
+    async = require('async');
+    mongoose.connect("mongodb://localhost/test_database"); // needed for testing
 
 /**
  * Retrieve a nested value of an object given a string, using dot notation.
@@ -59,7 +60,7 @@ var options = {
         if (err) throw err;
         else console.log(info.response);
     },
-    sendConfirmationEmail: true,
+    shouldSendConfirmation: true,
     confirmMailOptions: {
         from: 'Do Not Reply <user@gmail.com>',
         subject: 'Successfully verified!',
@@ -83,8 +84,9 @@ var transporter = nodemailer.createTransport(options.transportOptions);
  * @param {object} o - options to be changed
 */
 var configure = function(o) {
-    for (var key in o)
+    for (var key in o){
         options[key] = o[key];
+    }
     transporter = nodemailer.createTransport(options.transportOptions);
 };
 
@@ -118,6 +120,8 @@ var generateTempUserModel = function(User) {
     });
     
     options.tempUserModel = mongoose.model(options.tempUserCollection, tempUserSchema);
+
+    return mongoose.model(options.tempUserCollection)
 };
 
 
@@ -132,20 +136,23 @@ var generateTempUserModel = function(User) {
  * @return {object} null if user already exists; Mongoose Model instance otherwise
 */
 var createTempUser = function(user, callback) {
-    if (!options.tempUserModel)
+    if (!options.tempUserModel){
         throw new TypeError("Temporary user model not defined. Either you forgot to generate one or you did not predefine one.");
+    }
 
+    //Create our mongoose query
     var query = {};
     query[options.emailFieldName] = user[options.emailFieldName];
 
     options.tempUserModel.findOne(query, function(err, existingUser) {
-        if (err)
+        if (err){
             throw err;
+        }
 
         // user has already signed up...
-        if (existingUser)
+        if (existingUser){
             callback(null);
-
+        }
         else {
             var tempUserData = {},
                 newTempUser;
@@ -154,8 +161,17 @@ var createTempUser = function(user, callback) {
             Object.keys(user._doc).forEach(function(field) {
                 tempUserData[field] = user[field];
             });
+
             tempUserData[options.URLFieldName] = randtoken.generate(options.URLLength);
-            callback(new options.tempUserModel(tempUserData));
+            var newTempUser = new options.tempUserModel(tempUserData);
+
+
+            newTempUser.save(function(err, tmpUser) {
+                if (err){
+                    throw err;
+                }
+                callback(tmpUser);
+            });
         }
     });
 };
@@ -168,17 +184,41 @@ var createTempUser = function(user, callback) {
  * @param {string} email - the user's email address.
  * @param {string} url - the unique url generated for the user.
 */
-var sendVerificationEmail = function(email, url) {
+var sendVerificationEmail = function(email, url, callback) {
     var r = /\$\{URL\}/g;
 
     // inject newly-created URL into the email's body and FIRE
     var URL = options.verificationURL.replace(r, url),
         mailOptions = JSON.parse(JSON.stringify(options.verifyMailOptions));
+
     mailOptions.to = email;
     mailOptions.html = mailOptions.html.replace(r, URL);
     mailOptions.text = mailOptions.text.replace(r, URL);
 
-    transporter.sendMail(mailOptions, options.verifySendMailCallback);
+    if(!callback){
+        callback = options.verifySendMailCallback;
+    }
+    transporter.sendMail(mailOptions, callback);
+};
+
+/**
+ * Send an email to the user requesting confirmation.
+ *
+ * @func sendVerificationEmail
+ * @param {string} email - the user's email address.
+ * @param {string} url - the unique url generated for the user.
+*/
+var sendConfirmationEmail = function(email, callback) {
+
+    var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
+
+    mailOptions.to = email;
+
+    if(!callback){
+        callback = options.confirmSendMailCallback;
+    }
+    transporter.sendMail(mailOptions, callback);
+
 };
 
 
@@ -190,13 +230,31 @@ var sendVerificationEmail = function(email, url) {
  * @param {object} newTempUser - an instance of the temporary user model
 */
 var registerTempUser = function(newTempUser) {
-    var r = /\$\{URL\}/g;
-    newTempUser.save(function(err) {
-        if (err)
+    // var r = /\$\{URL\}/g;
+
+    async.waterfall([
+        function(callback){
+            newTempUser.save(function(err, tmpUser) {
+                if (err){
+                    callback(err);
+                }
+                callback();
+            });
+        },
+        function(callback){
+            try{
+                sendVerificationEmail(getNestedValue(newTempUser, options.emailFieldName), newTempUser[options.URLFieldName]);
+            }catch(err){
+                callback(err)
+            }
+            callback();
+        },
+    ], function(err, result){
+        if(err) {
             throw err;
-        sendVerificationEmail(getNestedValue(newTempUser, options.emailFieldName),
-            newTempUser[options.URLFieldName]);
+        }
     });
+
 };
 
 
@@ -213,8 +271,9 @@ var confirmTempUser = function(url, callback) {
     query[options.URLFieldName] = url;
 
     TempUser.findOne(query, function(err, tempUserData) {
-        if (err)
+        if (err){
             throw err;
+        }
 
         // temp user is found (i.e. user accessed URL before their data expired)
         if (tempUserData) {
@@ -226,18 +285,17 @@ var confirmTempUser = function(url, callback) {
             user = new User(userData);
 
             // save the temporary user to the persistent user collection
-            user.save(function(err) {
+            user.save(function(err, savedUser) {
                 if (err)
                     throw err;
 
                 TempUser.remove(query, function(err) {
-                    if (err)
+                    if (err){
                         throw err;
+                    }
 
-                    if (options.sendConfirmationEmail) {
-                        var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
-                        mailOptions.to = getNestedValue(userData, options.emailFieldName);
-                        transporter.sendMail(mailOptions, options.confirmSendMailCallback);
+                    if (options.shouldSendConfirmation) {
+                        sendConfirmationEmail(savedUser.email, null)
                     }
                 });
             });
@@ -263,13 +321,18 @@ var resendVerificationEmail = function(email, callback) {
     query[options.emailFieldName] = email;
 
     options.tempUserModel.findOne(query, function(err, tempUser) {
-        if (err)
+        if (err){
             throw err;
+        }
 
         // user found (i.e. user re-requested verification email before expiration)
         if (tempUser) {
-            sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName]);
-            callback(true);
+            sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err, info){
+                if(err){
+                    throw err;
+                }
+                callback(true);
+            });
         } else {
             callback(false);
         }
@@ -285,5 +348,6 @@ module.exports = {
     registerTempUser: registerTempUser,
     confirmTempUser: confirmTempUser,
     resendVerificationEmail: resendVerificationEmail,
+    sendConfirmationEmail: sendConfirmationEmail,
     sendVerificationEmail: sendVerificationEmail,
 };
