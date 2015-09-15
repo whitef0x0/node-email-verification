@@ -145,12 +145,12 @@ var createTempUser = function(user, callback) {
 
     options.tempUserModel.findOne(query, function(err, existingUser) {
         if (err){
-            throw err;
+            callback(err, null);
         }
 
         // user has already signed up...
         if (existingUser){
-            callback(null);
+            callback(null, null);
         }
         else {
             var tempUserData = {},
@@ -164,12 +164,11 @@ var createTempUser = function(user, callback) {
             tempUserData[options.URLFieldName] = randtoken.generate(options.URLLength);
             var newTempUser = new options.tempUserModel(tempUserData);
 
-
             newTempUser.save(function(err, tmpUser) {
                 if (err){
-                    throw err;
+                    callback(err, null);
                 }
-                callback(tmpUser);
+                callback(null, tmpUser);
             });
         }
     });
@@ -228,7 +227,7 @@ var sendConfirmationEmail = function(email, callback) {
  * @func registerTempUser
  * @param {object} newTempUser - an instance of the temporary user model
 */
-var registerTempUser = function(newTempUser) {
+var registerTempUser = function(newTempUser, callback) {
     // var r = /\$\{URL\}/g;
 
     async.waterfall([
@@ -250,8 +249,8 @@ var registerTempUser = function(newTempUser) {
         },
     ], function(err, result){
         if(err) {
-            throw err;
-        }
+            callback(err);
+        }else callback(null);
     });
 
 };
