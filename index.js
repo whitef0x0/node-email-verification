@@ -227,7 +227,7 @@ var sendConfirmationEmail = function(email, callback) {
  * @func registerTempUser
  * @param {object} newTempUser - an instance of the temporary user model
 */
-var registerTempUser = function(newTempUser, callback) {
+var registerTempUser = function(newTempUser, cb) {
     // var r = /\$\{URL\}/g;
 
     async.waterfall([
@@ -249,8 +249,8 @@ var registerTempUser = function(newTempUser, callback) {
         },
     ], function(err, result){
         if(err) {
-            callback(err);
-        }else callback(null);
+            cb(err);
+        }else cb();
     });
 
 };
