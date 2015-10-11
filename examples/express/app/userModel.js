@@ -4,7 +4,16 @@ var mongoose = require('mongoose'),
 var userSchema = mongoose.Schema({
     email  : String,
     pw     : String,
+    salt   : String,
 });
+
+userSchema.pre('save', function(next) {
+	if (this.pw) {
+		this.pw = this.generateHash(this.pw);
+	}
+	next();
+});
+
 
 userSchema.methods.generateHash = function(password) {
     return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);

@@ -23,15 +23,18 @@
   },
   "homepage": "https://github.com/StDako/node-email-verification",
   "dependencies": {
+    "async": "^1.4.2",
     "mongoose": "^3.8.19",
     "nodemailer": "^1.3.0",
+    "nodemailer-mandrill-transport": "^0.3.0",
     "rand-token": "^0.2.1"
   },
   "devDependencies": {
     "bcrypt": "^0.8.0",
     "body-parser": "^1.9.3",
+    "chai": "*",
     "express": "^4.10.4",
-    "mocha" : "*",
-    "chai" : "*"
+    "mocha": "*",
+    "nodemailer-stub-transport": "^1.0.0"
   }
 }
