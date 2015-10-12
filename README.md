@@ -1,25 +1,25 @@
 # node email verification
 [![NPM](https://nodei.co/npm/email-verification.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/email-verification/)
 
-verify user signup with node and mongodb
+Verify user signup with Node and MongoDB!
 
-the way this works is as follows:
+The way this works is as follows:
 
-- temporary user is created with a randomly generated URL assigned to it and then saved to a mongoDB collection
+- temporary user is created with a randomly generated URL assigned to it and then saved to a MongoDB collection
 - email is sent to the email address the user signed up with
 - when the URL is accessed, the user's data is transferred to the real collection
 
-a temporary user document has a TTL of 24 hours by default, but this (as well as many other things) can be configured. see the options section for more details. it is also possible to resend the verification email if needed.
+A temporary user document has a TTL of 24 hours by default, but this (as well as many other things) can be configured. See the options section for more details. It is also possible to resend the verification email if needed.
 
-## installation
+## Installation
 via npm:
 
 ```
 npm install email-verification
 ```
 
-## examples
-this little guide of sorts assumes you have a directory structure like so:
+## Examples
+This little guide of sorts assumes you have a directory structure like so:
 
 ```
 app/
@@ -29,7 +29,7 @@ node_modules/
 server.js
 ```
 
-all of the code in this section takes place in server.js.
+All of the code in this section takes place in server.js.
 
 ```javascript
 var nev = require('email-verification'),
@@ -38,7 +38,7 @@ var nev = require('email-verification'),
 mongoose.connect('mongodb://localhost/YOUR_DB');
 ```
 
-before doing anything, make sure to configure the options (see the section below for more extensive detail on this):
+Before doing anything, make sure to configure the options (see the section below for more extensive detail on this):
 
 ```javascript
 nev.configure({
@@ -62,9 +62,9 @@ nev.configure({
 });
 ```
 
-any options not included in the object you pass will take on the default value specified in the section below. calling `configure` multiple times with new options will simply change the previously defined options.
+Any options not included in the object you pass will take on the default value specified in the section below. Calling `configure` multiple times with new options will simply change the previously defined options.
 
-to create a temporary user model, you can either generate it using a built-in function, or you can predefine it in a separate file. if you are pre-defining it, it must be IDENTICAL to the user model with an extra field for the URL; the default one is `GENERATED_VERIFYING_URL: String`. **you're just better off generating a model**.
+To create a temporary user model, you can either generate it using a built-in function, or you can predefine it in a separate file. If you are pre-defining it, it must be IDENTICAL to the user model with an extra field for the URL; the default one is `GENERATED_VERIFYING_URL: String`. **You're just better off generating a model**.
 
 ```javascript
 // configuration options go here...
@@ -79,7 +79,7 @@ nev.configure({
 });
 ```
 
-then, create an instance of the User model, and then pass it as well as a custom callback to `createTempUser`, one that makes use of the function `registerTempUser` and, if you want, handles the case where the temporary user is already in the collection:
+Then, create an instance of the User model, and then pass it as well as a custom callback to `createTempUser`, one that makes use of the function `registerTempUser` and, if you want, handles the case where the temporary user is already in the collection:
 
 ```javascript
 // get the credentials from request parameters or something
@@ -104,9 +104,9 @@ nev.createTempUser(newUser, function(newTempUser) {
 });
 ```
 
-an email will be sent to the email address that the user signed up with. note that this does not handle hashing passwords - that must be done on your own terms. to see how to do this, check the Express example.
+An email will be sent to the email address that the user signed up with. Note that this does not handle hashing passwords - that must be done on your own terms. To see how to do this, check the Express example.
 
-to move a user from the temporary storage to 'persistent' storage (e.g. when they actually access the URL we sent them), we call `confirmTempUser`, which takes the URL as well as a callback with one argument (the instance of the User model, or null) as arguments. if the callback's argument is null, it is most likely because their data expired.
+To move a user from the temporary storage to 'persistent' storage (e.g. when they actually access the URL we sent them), we call `confirmTempUser`, which takes the URL as well as a callback with one argument (the instance of the User model, or null) as arguments. If the callback's argument is null, it is most likely because their data expired.
 
 ```javascript
 var url = '...';
@@ -118,7 +118,7 @@ nev.confirmTempUser(url, function(user) {
 });
 ```
 
-if you want the user to be able to request another verification email, simply call `resendVerificationEmail`, which takes the user's email address and a callback with one argument (again, whether or not the user was found) as arguments:
+If you want the user to be able to request another verification email, simply call `resendVerificationEmail`, which takes the user's email address and a callback with one argument (again, whether or not the user was found) as arguments:
 
 ```javascript
 var email = '...';
@@ -130,14 +130,14 @@ nev.resendVerificationEmail(email, function(userFound) {
 });
 ```
 
-to see a fully functioning example that uses Express as the backend, check out the [**examples section**](https://github.com/StDako/node-email-verification/tree/master/examples/express).
+To see a fully functioning example that uses Express as the backend, check out the [**examples section**](https://github.com/StDako/node-email-verification/tree/master/examples/express).
 
 ## API
 #### `configure(options)`
-changes the default configuration by passing an object of options; see the section below for a list of all options.
+Changes the default configuration by passing an object of options; see the section below for a list of all options.
 
 #### `generateTempUserModel(UserModel)`
-generates a Mongoose Model for the temporary user based off of `UserModel`, the persistent user model. the temporary model is essentially a duplicate of the persistent model except that it has the field `{GENERATED_VERIFYING_URL: String}` for the randomly generated URL by default (the field name can be changed in the options). if the persistent model has the field `createdAt`, then an expiration time (`expires`) is added to it with a default value of 24 hours; otherwise, the field is created as such:
+Generates a Mongoose Model for the temporary user based off of `UserModel`, the persistent user model. The temporary model is essentially a duplicate of the persistent model except that it has the field `{GENERATED_VERIFYING_URL: String}` for the randomly generated URL by default (the field name can be changed in the options). If the persistent model has the field `createdAt`, then an expiration time (`expires`) is added to it with a default value of 24 hours; otherwise, the field is created as such:
 
 ```
 {
@@ -151,25 +151,26 @@ generates a Mongoose Model for the temporary user based off of `UserModel`, the 
 }
 ```
 
-note that `createdAt` will not be transferred to persistent storage (yet?).
+Note that `createdAt` will not be transferred to persistent storage (yet?).
 
 #### `createTempUser(user, callback(tempuser))`
-attempts to create an instance of a temporary user model based off of an instance of a persistent user, `user`. `tempuser` is the temporary user instance if the user doesn't exist in the temporary collection, or `null` otherwise. it is most convenient to call `registerTempUser` in the "success" case (i.e. not `null`) of the callback.
+Attempts to create an instance of a temporary user model based off of an instance of a persistent user, `user`. `tempuser` is the temporary user instance if the user doesn't exist in the temporary collection, or `null` otherwise. It is most convenient to call `registerTempUser` in the "success" case (i.e. not `null`) of the callback.
 
-if a temporary user model hasn't yet been defined (generated or otherwise), a TypeError will be thrown.
+If a temporary user model hasn't yet been defined (generated or otherwise), a TypeError will be thrown.
 
 #### `registerTempUser(tempuser)`
-saves the instance of the temporary user model, `tempuser`, to the temporary collection, and then sends an email to the user requesting verification.
+Saves the instance of the temporary user model, `tempuser`, to the temporary collection, and then sends an email to the user requesting verification.
 
 #### `confirmTempUser(url, callback(user))`
-transfers a temporary user (found by `url`) from the temporary collection to the persistent collection and remove the URL assigned to the user. `userTransferred` is the persistent user instance if  the user has been successfully transferred (i.e. the user accessed URL before expiration) and `null` otherwise; this can be used for redirection and what not.
+Transfers a temporary user (found by `url`) from the temporary collection to the persistent collection and remove the URL assigned to the user. `userTransferred` is the persistent user instance if the user has been successfully transferred (i.e. the user accessed URL before expiration) and `null` otherwise; this can be used for redirection and what not.
 
 #### `resendVerificationEmail(email, callback(userFound))`
-resends the verification email to a user, given their email. `userFound` is `true` if the user has been found in the temporary collection (i.e. their data hasn't expired yet) and `false` otherwise.
+Resends the verification email to a user, given their email. `userFound` is `true` if the user has been found in the temporary collection (i.e. their data hasn't expired yet) and `false` otherwise.
 
 
 ### options
-here are the default options:
+Here are the default options:
+
 ```javascript
 var options = {
     verificationURL: 'http://example.com/email-verification/${URL}',
@@ -231,12 +232,12 @@ var options = {
 - **confirmMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email to notify the user that their account has been verified. you must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
 - **confirmSendMailCallback**: the callback function that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email to notify the user that their account has been verified.
 
-### todo
+### TODO
 - **development**: add a task runner WE NEED TESTS
 - **development**: throw more errors
 - *nice to have*: working examples with Sails and HapiJS (maybe Koa and Total as well?)
 
-### acknowledgements
+### Acknowledgements
 thanks to [Frank Cash](https://github.com/frankcash) for looking over my code.
 
 ### license
