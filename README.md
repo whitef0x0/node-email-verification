@@ -153,22 +153,22 @@ Generates a Mongoose Model for the temporary user based off of `UserModel`, the 
 
 Note that `createdAt` will not be transferred to persistent storage (yet?).
 
-#### `createTempUser(user, callback(tempuser))`
-Attempts to create an instance of a temporary user model based off of an instance of a persistent user, `user`. `tempuser` is the temporary user instance if the user doesn't exist in the temporary collection, or `null` otherwise. It is most convenient to call `registerTempUser` in the "success" case (i.e. not `null`) of the callback.
+#### `createTempUser(user, callback(err, tempuser))`
+Attempts to create an instance of a temporary user model based off of an instance of a persistent user, `user`. `tempuser` is the temporary user instance if the user doesn't exist in the temporary collection, or `null` otherwise. If there are no errors, `err` is `null`. It is most convenient to call `registerTempUser` in the "success" case (i.e. not `null`) of the callback.
 
 If a temporary user model hasn't yet been defined (generated or otherwise), a TypeError will be thrown.
 
-#### `registerTempUser(tempuser)`
-Saves the instance of the temporary user model, `tempuser`, to the temporary collection, and then sends an email to the user requesting verification.
+#### `registerTempUser(tempuser, callback(err))`
+Saves the instance of the temporary user model, `tempuser`, to the temporary collection, and then sends an email to the user requesting verification. If there are no errors, `err` is `null`.
 
-#### `confirmTempUser(url, callback(user))`
-Transfers a temporary user (found by `url`) from the temporary collection to the persistent collection and remove the URL assigned to the user. `userTransferred` is the persistent user instance if the user has been successfully transferred (i.e. the user accessed URL before expiration) and `null` otherwise; this can be used for redirection and what not.
+#### `confirmTempUser(url, callback(err, userTransferred))`
+Transfers a temporary user (found by `url`) from the temporary collection to the persistent collection and removes the URL assigned with the user. `userTransferred` is the persistent user instance if the user has been successfully transferred (i.e. the user accessed URL before expiration) and `null` otherwise; this can be used for redirection and what not. If there are no errors, `err` is `null`.
 
-#### `resendVerificationEmail(email, callback(userFound))`
-Resends the verification email to a user, given their email. `userFound` is `true` if the user has been found in the temporary collection (i.e. their data hasn't expired yet) and `false` otherwise.
+#### `resendVerificationEmail(email, callback(err, userFound))`
+Resends the verification email to a user, given their email. `userFound` is `true` if the user has been found in the temporary collection (i.e. their data hasn't expired yet) and `false` otherwise. If there are no errors, `err` is `null`.
 
 
-### options
+### Options
 Here are the default options:
 
 ```javascript
