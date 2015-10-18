@@ -12,7 +12,7 @@ var User = require('./app/userModel');
 // NEV configuration =====================
 nev.configure({
     persistentUserModel: User,
-    expirationTime: 600,  // 10 minutes
+    expirationTime: 600, // 10 minutes
 
     verificationURL: 'http://localhost:8000/email-verification/${URL}',
     transportOptions: {
@@ -30,7 +30,9 @@ nev.generateTempUserModel(User);
 // Express stuff =========================
 app.use(bodyParser.urlencoded());
 app.get('/', function(req, res) {
-    res.sendFile('index.html', {root: __dirname});
+    res.sendFile('index.html', {
+        root: __dirname
+    });
 });
 
 app.post('/', function(req, res) {
@@ -50,12 +52,16 @@ app.post('/', function(req, res) {
                 // hash the password here
                 newTempUser.pw = newTempUser.generateHash(newTempUser.pw);
                 nev.registerTempUser(newTempUser, function(err) {
-                    res.json({msg: 'An email has been sent to you. Please check it to verify your account.'});
+                    res.json({
+                        msg: 'An email has been sent to you. Please check it to verify your account.'
+                    });
                 });
 
             // user already exists in temporary collection!
             } else {
-                res.json({msg: 'You have already signed up. Please check your email to verify your account.'});
+                res.json({
+                    msg: 'You have already signed up. Please check your email to verify your account.'
+                });
             }
         });
 
@@ -63,9 +69,13 @@ app.post('/', function(req, res) {
     } else {
         nev.resendVerificationEmail(email, function(err, userFound) {
             if (userFound) {
-                res.json({msg: 'An email has been sent to you, yet again. Please check it to verify your account.'});
+                res.json({
+                    msg: 'An email has been sent to you, yet again. Please check it to verify your account.'
+                });
             } else {
-                res.json({msg: 'Your verification code has expired. Please sign up again.'});
+                res.json({
+                    msg: 'Your verification code has expired. Please sign up again.'
+                });
             }
         });
     }

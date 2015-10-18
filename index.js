@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var randtoken = require('rand-token'),
     mongoose = require('mongoose'),
@@ -12,17 +12,20 @@ var randtoken = require('rand-token'),
  * @param {object} obj - object to retrieve the value from
  * @param {string} path - path to value
  * @param {string} def - default value to return if not found
-*/
-var getNestedValue = function(obj, path, def){
+ */
+var getNestedValue = function(obj, path, def) {
     var i, len;
 
-    for(i = 0,path = path.split('.'), len = path.length; i < len; i++){
-        if(!obj || typeof obj !== 'object') return def;
+    for (i = 0, path = path.split('.'), len = path.length; i < len; i++) {
+        if (!obj || typeof obj !== 'object') {
+            return def;
+        }
         obj = obj[path[i]];
     }
 
-    if(obj === undefined)
+    if (obj === undefined) {
         return def;
+    }
     return obj;
 };
 
@@ -52,12 +55,15 @@ var options = {
         from: 'Do Not Reply <user@gmail.com>',
         subject: 'Confirm your account',
         html: '<p>Please verify your account by clicking <a href="${URL}">this link</a>. If you are unable to do so, copy and ' +
-                'paste the following link into your browser:</p><p>${URL}</p>',
+            'paste the following link into your browser:</p><p>${URL}</p>',
         text: 'Please verify your account by clicking the following link, or by copying and pasting it into your browser: ${URL}'
     },
     verifySendMailCallback: function(err, info) {
-        if (err) throw err;
-        else console.log(info.response);
+        if (err) {
+            throw err;
+        } else {
+            console.log(info.response);
+        }
     },
     shouldSendConfirmation: true,
     confirmMailOptions: {
@@ -67,8 +73,11 @@ var options = {
         text: 'Your account has been successfully verified.'
     },
     confirmSendMailCallback: function(err, info) {
-        if (err) throw err;
-        else console.log(info.response);
+        if (err) {
+            throw err;
+        } else {
+            console.log(info.response);
+        }
     },
 };
 
@@ -81,10 +90,12 @@ var transporter = nodemailer.createTransport(options.transportOptions);
  *
  * @func configure
  * @param {object} o - options to be changed
-*/
+ */
 var configure = function(o) {
-    for (var key in o){
-        options[key] = o[key];
+    for (var key in o) {
+        if (o.hasOwnProperty(key)) {
+            options[key] = o[key];
+        }
     }
     transporter = nodemailer.createTransport(options.transportOptions);
 };
@@ -97,10 +108,10 @@ var configure = function(o) {
  *
  * @func generateTempUserModel
  * @param {object} User - the persistent User model.
-*/
+ */
 var generateTempUserModel = function(User) {
     var tempUserSchemaObject = {}, // a copy of the schema
-        tempUserSchema, tempUserModel;
+        tempUserSchema;
 
     // copy over the attributes of the schema
     Object.keys(User.schema.paths).forEach(function(field) {
@@ -121,10 +132,10 @@ var generateTempUserModel = function(User) {
     Object.keys(User.schema.methods).forEach(function(meth) { // tread lightly 
         tempUserSchema.methods[meth] = User.schema.methods[meth];
     });
-    
+
     options.tempUserModel = mongoose.model(options.tempUserCollection, tempUserSchema);
 
-    return mongoose.model(options.tempUserCollection)
+    return mongoose.model(options.tempUserCollection);
 };
 
 
@@ -137,26 +148,25 @@ var generateTempUserModel = function(User) {
  * @func createTempUser
  * @param {object} user - an instance of the persistent User model
  * @return {object} null if user already exists; Mongoose Model instance otherwise
-*/
+ */
 var createTempUser = function(user, callback) {
-    if (!options.tempUserModel){
-        throw new TypeError("Temporary user model not defined. Either you forgot to generate one or you did not predefine one.");
+    if (!options.tempUserModel) {
+        throw new TypeError('Temporary user model not defined. Either you forgot to generate one or you did not predefine one.');
     }
 
-    //Create our mongoose query
+    // create our mongoose query
     var query = {};
     query[options.emailFieldName] = user[options.emailFieldName];
 
     options.tempUserModel.findOne(query, function(err, existingUser) {
-        if (err){
+        if (err) {
             return callback(err, null);
         }
 
         // user has already signed up...
-        if (existingUser){
+        if (existingUser) {
             return callback(null, null);
-        }
-        else {
+        } else {
             var tempUserData = {},
                 newTempUser;
 
@@ -166,10 +176,10 @@ var createTempUser = function(user, callback) {
             });
 
             tempUserData[options.URLFieldName] = randtoken.generate(options.URLLength);
-            var newTempUser = new options.tempUserModel(tempUserData);
+            newTempUser = new options.tempUserModel(tempUserData);
 
             newTempUser.save(function(err, tempUser) {
-                if (err){
+                if (err) {
                     return callback(err, null);
                 }
                 return callback(null, tempUser);
@@ -185,7 +195,7 @@ var createTempUser = function(user, callback) {
  * @func sendVerificationEmail
  * @param {string} email - the user's email address.
  * @param {string} url - the unique url generated for the user.
-*/
+ */
 var sendVerificationEmail = function(email, url, callback) {
     var r = /\$\{URL\}/g;
 
@@ -197,7 +207,7 @@ var sendVerificationEmail = function(email, url, callback) {
     mailOptions.html = mailOptions.html.replace(r, URL);
     mailOptions.text = mailOptions.text.replace(r, URL);
 
-    if(!callback){
+    if (!callback) {
         callback = options.verifySendMailCallback;
     }
     transporter.sendMail(mailOptions, callback);
@@ -209,12 +219,12 @@ var sendVerificationEmail = function(email, url, callback) {
  * @func sendVerificationEmail
  * @param {string} email - the user's email address.
  * @param {string} url - the unique url generated for the user.
-*/
+ */
 var sendConfirmationEmail = function(email, callback) {
     var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
     mailOptions.to = email;
 
-    if(!callback){
+    if (!callback) {
         callback = options.confirmSendMailCallback;
     }
     transporter.sendMail(mailOptions, callback);
@@ -227,31 +237,33 @@ var sendConfirmationEmail = function(email, callback) {
  *
  * @func registerTempUser
  * @param {object} newTempUser - an instance of the temporary user model
-*/
+ */
 var registerTempUser = function(newTempUser, cb) {
     // var r = /\$\{URL\}/g;
 
     async.waterfall([
-        function(callback){
+        function(callback) {
             newTempUser.save(function(err, tempUser) {
-                if (err){
+                if (err) {
                     return callback(err);
                 }
                 return callback();
             });
         },
-        function(callback){
-            try{
+        function(callback) {
+            try {
                 sendVerificationEmail(getNestedValue(newTempUser, options.emailFieldName), newTempUser[options.URLFieldName]);
-            }catch(err){
+            } catch (err) {
                 return callback(err);
             }
             return callback();
         },
-    ], function(err, result){
-        if(err) {
+    ], function(err, result) {
+        if (err) {
             return cb(err);
-        }else return cb();
+        } else {
+            return cb();
+        }
     });
 };
 
@@ -262,14 +274,14 @@ var registerTempUser = function(newTempUser, cb) {
  *
  * @func confirmTempUser
  * @param {string} url - the randomly generated URL assigned to a unique email
-*/
+ */
 var confirmTempUser = function(url, callback) {
     var TempUser = options.tempUserModel,
         query = {};
     query[options.URLFieldName] = url;
 
     TempUser.findOne(query, function(err, tempUserData) {
-        if (err){
+        if (err) {
             return callback(err, null);
         }
 
@@ -284,23 +296,24 @@ var confirmTempUser = function(url, callback) {
 
             // save the temporary user to the persistent user collection
             user.save(function(err, savedUser) {
-                if (err)
+                if (err) {
                     return callback(err, null);
+                }
 
                 TempUser.remove(query, function(err) {
-                    if (err){
+                    if (err) {
                         return callback(err, null);
                     }
 
                     if (options.shouldSendConfirmation) {
-                        sendConfirmationEmail(savedUser.email, null)
+                        sendConfirmationEmail(savedUser.email, null);
                     }
                 });
             });
 
             return callback(null, user);
 
-        // temp user is not found (i.e. user accessed URL after data expired, or something else...)
+            // temp user is not found (i.e. user accessed URL after data expired, or something else...)
         } else {
             return callback(null, null);
         }
@@ -313,20 +326,20 @@ var confirmTempUser = function(url, callback) {
  *
  * @func resendVerificationEmail
  * @param {object} email - the user's email address
-*/
+ */
 var resendVerificationEmail = function(email, callback) {
     var query = {};
     query[options.emailFieldName] = email;
 
     options.tempUserModel.findOne(query, function(err, tempUser) {
-        if (err){
+        if (err) {
             return callback(err, null);
         }
 
         // user found (i.e. user re-requested verification email before expiration)
         if (tempUser) {
-            sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err, info){
-                if(err){
+            sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err, info) {
+                if (err) {
                     return callback(err, null);
                 }
                 return callback(null, true);

@@ -1,14 +1,22 @@
 {
   "name": "email-verification",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Verify email sign-up using MongoDB.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "format:examples": "js-beautify -r examples/**/*.js",
+    "format:main": "js-beautify -r index.js",
+    "format:test": "js-beautify -s 2 -r test/*.js",
+    "format": "npm run format:main && npm run format:examples && npm run format:test",
+    "lint:examples": "jshint --reporter=node_modules/jshint-stylish examples/**/*.js",
+    "lint:main": "jshint --reporter=node_modules/jshint-stylish index.js",
+    "lint:test": "jshint --reporter=node_modules/jshint-stylish test/*.js",
+    "lint": "npm run lint:main && npm run lint:examples && npm run lint:test",
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/StDako/node-email-verification"
+    "url": "https://github.com/SaintDako/node-email-verification"
   },
   "keywords": [
     "mongodb",
@@ -16,12 +24,12 @@
     "authentication",
     "email"
   ],
-  "author": "Dakota St. Laurent <hello@stdako.com> (http://stdako.com/)",
+  "author": "Dakota St. Laurent <hello@saintdako.com> (http://saintdako.com/)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/StDako/node-email-verification/issues"
+    "url": "https://github.com/SaintDako/node-email-verification/issues"
   },
-  "homepage": "https://github.com/StDako/node-email-verification",
+  "homepage": "https://github.com/SaintDako/node-email-verification",
   "dependencies": {
     "async": "^1.4.2",
     "mongoose": "^3.8.19",
@@ -34,6 +42,9 @@
     "body-parser": "^1.9.3",
     "chai": "*",
     "express": "^4.10.4",
+    "js-beautify": "^1.5.10",
+    "jshint": "^2.8.0",
+    "jshint-stylish": "^2.0.1",
     "mocha": "*",
     "nodemailer-stub-transport": "^1.0.0"
   }

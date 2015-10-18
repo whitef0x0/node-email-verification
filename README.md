@@ -232,6 +232,31 @@ var options = {
 - **confirmMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email to notify the user that their account has been verified. you must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
 - **confirmSendMailCallback**: the callback function that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email to notify the user that their account has been verified.
 
+### Developer-Related Stuff
+To beautify the code:
+
+```
+npm run format:main
+npm run format:examples
+npm run format:test
+npm run format  # runs all
+```
+
+To lint the code (will error if there are any warnings):
+
+```
+npm run lint:main
+npm run lint:examples
+npm run lint:test
+npm run lint  # runs all
+```
+
+To test:
+
+```
+npm test
+```
+
 ### TODO
 - **development**: add a task runner WE NEED TESTS
 - **development**: throw more errors
