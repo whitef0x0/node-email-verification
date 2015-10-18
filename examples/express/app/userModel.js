@@ -8,10 +8,10 @@ var userSchema = mongoose.Schema({
 });
 
 userSchema.pre('save', function(next) {
-	if (this.pw) {
-		this.pw = this.generateHash(this.pw);
-	}
-	next();
+    if (this.pw) {
+        this.pw = this.generateHash(this.pw);
+    }
+    next();
 });
 
 

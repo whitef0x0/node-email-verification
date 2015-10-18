@@ -44,13 +44,14 @@ app.post('/', function(req, res) {
             pw: pw
         });
 
-        nev.createTempUser(newUser, function(newTempUser) {
+        nev.createTempUser(newUser, function(err, newTempUser) {
             // new user created
             if (newTempUser) {
                 // hash the password here
                 newTempUser.pw = newTempUser.generateHash(newTempUser.pw);
-                nev.registerTempUser(newTempUser);
-                res.json({msg: 'An email has been sent to you. Please check it to verify your account.'});
+                nev.registerTempUser(newTempUser, function(err) {
+                    res.json({msg: 'An email has been sent to you. Please check it to verify your account.'});
+                });
 
             // user already exists in temporary collection!
             } else {
@@ -60,7 +61,7 @@ app.post('/', function(req, res) {
 
     // resend verification button was clicked
     } else {
-        nev.resendVerificationEmail(email, function(userFound) {
+        nev.resendVerificationEmail(email, function(err, userFound) {
             if (userFound) {
                 res.json({msg: 'An email has been sent to you, yet again. Please check it to verify your account.'});
             } else {
@@ -75,7 +76,7 @@ app.post('/', function(req, res) {
 app.get('/email-verification/:URL', function(req, res) {
     var url = req.params.URL;
 
-    nev.confirmTempUser(url, function(user) {
+    nev.confirmTempUser(url, function(err, user) {
         if (user) {
             setTimeout(function() {
                 res.redirect('/');
