@@ -29,12 +29,12 @@ node_modules/
 server.js
 ```
 
-All of the code in this section takes place in server.js.
+All of the code in this section takes place in server.js. Note that `mongoose` has to be passed as an argument when requiring the module:
 
 ```javascript
-var nev = require('email-verification'),
-    User = require('./app/userModel'),
-    mongoose = require('mongoose');
+var User = require('./app/userModel'),
+    mongoose = require('mongoose'),
+    nev = require('email-verification')(mongoose);
 mongoose.connect('mongodb://localhost/YOUR_DB');
 ```
 
@@ -91,11 +91,19 @@ var newUser = User({
     password: password
 });
 
-nev.createTempUser(newUser, function(newTempUser) {
+nev.createTempUser(newUser, function(err, newTempUser) {
+    // some sort of error
+    if (err)
+        // handle error...
+
     // a new user
     if (newTempUser) {
-        nev.registerTempUser(newTempUser);
-        // flash message of success
+        nev.registerTempUser(newTempUser, function(err) {
+            if (err)
+                // handle error...    
+
+            // flash message of success
+        });
 
     // user already exists in our temporary collection
     } else {
@@ -110,7 +118,10 @@ To move a user from the temporary storage to 'persistent' storage (e.g. when the
 
 ```javascript
 var url = '...';
-nev.confirmTempUser(url, function(user) {
+nev.confirmTempUser(url, function(err, user) {
+    if (err)
+        // handle error...
+
     if (user)
         // redirect to their profile
     else
@@ -122,7 +133,10 @@ If you want the user to be able to request another verification email, simply ca
 
 ```javascript
 var email = '...';
-nev.resendVerificationEmail(email, function(userFound) {
+nev.resendVerificationEmail(email, function(err, userFound) {
+    if (err)
+        // handle error...
+
     if (userFound)
         // email has been sent
     else
