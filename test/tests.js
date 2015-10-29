@@ -1,7 +1,7 @@
 var assert = require('chai').assert;
 var should = require('chai').should();
 var mongoose = require('mongoose');
-var nev = require('../index');
+var nev = require('../index')(mongoose);
 var stubTransport = require('nodemailer-stub-transport');
 var user = require('../examples/express/app/userModel'); // sample user schema
 mongoose.connect('mongodb://localhost/test_database'); // needed for testing
@@ -42,8 +42,6 @@ describe('db tests', function() {
     nev.sendVerificationEmail('foobar@fizzbuzz.com', 'foo', function(err, info) {
       should.not.exist(err);
       should.exist(info);
-
-      // console.log(info.response.toString());
       done();
     });
   });
@@ -74,7 +72,6 @@ describe('db tests', function() {
 
   it('should confirm a temp user without any errors (sendConfirmationEmail())', function(done) {
     nev.createTempUser(newUser, function(err, newTempUser) {
-      // console.log(newTempUser);
 
       if (newTempUser) {
         nev.registerTempUser(newTempUser, function() {});
@@ -84,7 +81,6 @@ describe('db tests', function() {
         should.not.exist(err);
         should.exist(info);
 
-        console.log(info.response.toString());
         done();
       });
     });
