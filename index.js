@@ -185,7 +185,7 @@ var createTempUser = function(user, callback) {
 var sendVerificationEmail = function(email, url, callback) {
     var r = /\$\{URL\}/g;
 
-    // inject newly-created URL into the email's body and FIRE
+    // inject newly-created URL into the email's body
     var URL = options.verificationURL.replace(r, url),
         mailOptions = JSON.parse(JSON.stringify(options.verifyMailOptions));
 
@@ -228,7 +228,6 @@ var sendConfirmationEmail = function(email, callback) {
  * @param {object} newTempUser - an instance of the temporary user model
 */
 var registerTempUser = function(newTempUser, cb) {
-    // var r = /\$\{URL\}/g;
 
     async.waterfall([
         function(callback){
@@ -284,8 +283,9 @@ var confirmTempUser = function(url, callback) {
 
             // save the temporary user to the persistent user collection
             user.save(function(err, savedUser) {
-                if (err)
+                if (err){
                     throw err;
+                }
 
                 TempUser.remove(query, function(err) {
                     if (err){
@@ -293,12 +293,13 @@ var confirmTempUser = function(url, callback) {
                     }
 
                     if (options.shouldSendConfirmation) {
-                        sendConfirmationEmail(savedUser.email, null)
+                        sendConfirmationEmail(savedUser.email, callback(user));
+                    }else{
+                        callback(user);
                     }
                 });
             });
 
-            callback(user);
 
         // temp user is not found (i.e. user accessed URL after data expired, or something else...)
         } else {
@@ -325,12 +326,24 @@ var resendVerificationEmail = function(email, callback) {
 
         // user found (i.e. user re-requested verification email before expiration)
         if (tempUser) {
-            sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err, info){
-                if(err){
+
+
+            //Generate new verification key
+            tempUser[options.URLFieldName] = randtoken.generate(options.URLLength);
+
+            tempUser.save(function(err){
+                if (err){
                     throw err;
                 }
-                callback(true);
+
+                sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err, info){
+                    if(err){
+                        throw err;
+                    }
+                    callback(true);
+                });           
             });
+
         } else {
             callback(false);
         }
