@@ -338,12 +338,17 @@ module.exports = function(mongoose) {
 
       // user found (i.e. user re-requested verification email before expiration)
       if (tempUser) {
-        sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err, info) {
-          if (err) {
-            return callback(err, null);
-          }
-          return callback(null, true);
+        //generate new user token
+        tempUser[options.URLFieldName] = randtoken.generate(options.URLLength);
+        tempUser.save(function(err, user){
+          sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err, info) {
+            if (err) {
+              return callback(err, null);
+            }
+            return callback(null, true);
+          });
         });
+        
       } else {
         return callback(null, false);
       }
