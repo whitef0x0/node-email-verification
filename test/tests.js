@@ -10,6 +10,8 @@ mongoose.connect('mongodb://localhost/test_database'); // needed for testing
 nev.generateTempUserModel(user);
 nev.configure({
   transportOptions: stubTransport(),
+  persistentUserModel: user,
+  passwordFieldName: 'pw',
 });
 
 describe('config & set up tests', function() {
@@ -22,9 +24,9 @@ describe('config & set up tests', function() {
 
 });
 
-describe('db tests', function() {
+describe('MongoDB tests', function() {
 
-  var newUser;
+  var newUser, newUserURL;
 
   before(function(done) {
     newUser = new user({
@@ -32,28 +34,13 @@ describe('db tests', function() {
       pw: 'pass'
     });
 
-    newUser.save(function(err) {
-      should.not.exist(err);
-      done();
-    });
+    done();
   });
 
-  it('should send an email without any errors (sendVerificationEmail())', function(done) {
-    nev.sendVerificationEmail('foobar@fizzbuzz.com', 'foo', function(err, info) {
-      should.not.exist(err);
-      should.exist(info);
-      done();
-    });
-  });
-
-  it('should create a temporary user without any errors (createTempUser())', function(done) {
-
+  it('should create a temporary user (createTempUser())', function(done) {
     nev.createTempUser(newUser, function(err, newTempUser) {
-
-      // new user created
-      if (newTempUser) {
-        nev.registerTempUser(newTempUser, function() {});
-      }
+      should.not.exist(err);
+      should.exist(newTempUser);
 
       nev.options.tempUserModel.findOne({
         email: newUser.email
@@ -62,7 +49,8 @@ describe('db tests', function() {
         should.exist(result);
 
         result.should.have.property('email').with.length(newUser.email.length);
-        result.should.have.property('pw').with.length(60);
+        result.should.have.property('pw').with.length(4);
+        newUserURL = result.GENERATED_VERIFYING_URL;
 
         done();
       });
@@ -70,28 +58,26 @@ describe('db tests', function() {
     });
   });
 
-  it('should confirm a temp user without any errors (sendConfirmationEmail())', function(done) {
-    nev.createTempUser(newUser, function(err, newTempUser) {
+  it('should put the temporary user into the persistent collection (confirmTempUser())', function(done) {
+    nev.confirmTempUser(newUserURL, function(err, newUser) {
+      should.not.exist(err);
+      should.exist(newUser);
 
-      if (newTempUser) {
-        nev.registerTempUser(newTempUser, function() {});
-      }
-
-      nev.sendConfirmationEmail(newTempUser.email, function(err, info) {
+      user.findOne({
+        email: newUser.email
+      }).exec(function(err, result) {
         should.not.exist(err);
-        should.exist(info);
+        should.exist(result);
+
+        result.should.have.property('email').with.length(newUser.email.length);
+        result.should.have.property('pw').with.length(4);
 
         done();
       });
     });
-  });
-
-  afterEach(function(done) {
-    nev.options.tempUserModel.remove().exec(done);
   });
 
   after(function(done) {
     user.remove().exec(done);
   });
-
 });
