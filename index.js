@@ -118,7 +118,7 @@ module.exports = function(mongoose) {
     tempUserSchema = mongoose.Schema(tempUserSchemaObject);
 
     // copy over the methods of the schema
-    Object.keys(User.schema.methods).forEach(function(meth) { // tread lightly 
+    Object.keys(User.schema.methods).forEach(function(meth) { // tread lightly
       tempUserSchema.methods[meth] = User.schema.methods[meth];
     });
 
@@ -161,14 +161,14 @@ module.exports = function(mongoose) {
    * @func createTempUser
    * @param {object} user - an instance of the persistent User model
    * @param {function} callback - a callback function that takes an error (if one exists)
-   *   and the new temporary user as arguments; if the user has already signed up or if 
+   *   and the new temporary user as arguments; if the user has already signed up or if
    *   there is an error then this value is null then null is returned
    * @return {function} returns the callback function
    */
   var createTempUser = function(user, callback) {
     if (!options.tempUserModel) {
-      return callback(new TypeError('Temporary user model not defined. Either you forgot \
-        to generate one or you did not predefine one.'), null);
+      return callback(new TypeError('Temporary user model not defined. Either you forgot' +
+        'to generate one or you did not predefine one.'), null);
     }
 
     // create our mongoose query
@@ -204,7 +204,7 @@ module.exports = function(mongoose) {
           tempUserData[options.URLFieldName] = randtoken.generate(options.URLLength);
 
           if (options.hashingFunction) {
-            return options.hashingFunction(tempUserData[options.passwordFieldName], tempUserData, 
+            return options.hashingFunction(tempUserData[options.passwordFieldName], tempUserData,
               insertTempUser, callback);
           } else {
             return insertTempUser(tempUserData[options.passwordFieldName], tempUserData, callback);
@@ -320,19 +320,19 @@ module.exports = function(mongoose) {
       if (tempUser) {
         // generate new user token
         tempUser[options.URLFieldName] = randtoken.generate(options.URLLength);
-        tempUser.save(function(err, user) {
+        tempUser.save(function(err) {
           if (err) {
             return callback(err, null);
           }
 
-          sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err, info) {
+          sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err) {
             if (err) {
               return callback(err, null);
             }
             return callback(null, true);
           });
         });
-        
+
       } else {
         return callback(null, false);
       }
