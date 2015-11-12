@@ -117,7 +117,7 @@ nev.createTempUser(newUser, function(err, newTempUser) {
 
 An email will be sent to the email address that the user signed up with. If you are interested in hashing the password (which you probably should be), all you need to do is set the option `hashingFunction` to a function that takes the parameters `password, tempUserData, insertTempUser, callback` and returns `insertTempUser(hash, tempUserData, callback)`, e.g.:
 
-```
+```javascript
 // sync version of hashing function
 var myHasher = function(password, tempUserData, insertTempUser, callback) {
   var hash = bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
@@ -182,7 +182,7 @@ Changes the default configuration by passing an object of options; see the secti
 ### `generateTempUserModel(UserModel)`
 Generates a Mongoose Model for the temporary user based off of `UserModel`, the persistent user model. The temporary model is essentially a duplicate of the persistent model except that it has the field `{GENERATED_VERIFYING_URL: String}` for the randomly generated URL by default (the field name can be changed in the options). If the persistent model has the field `createdAt`, then an expiration time (`expires`) is added to it with a default value of 24 hours; otherwise, the field is created as such:
 
-```
+```javascript
 {
     ...
     createdAt: {
