@@ -2,12 +2,27 @@ var express = require('express'),
   bodyParser = require('body-parser'),
   app = express(),
   mongoose = require('mongoose'),
+  bcrypt = require('bcryptjs'),
   nev = require('../../index')(mongoose);
 mongoose.connect('mongodb://localhost/YOUR_DB');
 
 // our persistent user model
 var User = require('./app/userModel');
 
+// sync version of hashing function
+var myHasher = function(password, tempUserData, insertTempUser, callback) {
+  var hash = bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+  return insertTempUser(hash, tempUserData, callback);
+};
+
+// async version of hashing function
+myHasher = function(password, tempUserData, insertTempUser, callback) {
+  bcrypt.genSalt(8, function(err, salt) {
+    bcrypt.hash(password, salt, function(err, hash) {
+      return insertTempUser(hash, tempUserData, callback);
+    });
+  });
+};
 
 // NEV configuration =====================
 nev.configure({
@@ -22,6 +37,9 @@ nev.configure({
       pass: 'yoursupersecurepassword'
     }
   },
+
+  hashingFunction: myHasher,
+  passwordFieldName: 'pw',
 });
 
 nev.generateTempUserModel(User);
@@ -47,11 +65,15 @@ app.post('/', function(req, res) {
     });
 
     nev.createTempUser(newUser, function(err, newTempUser) {
+      if (err) {
+        return res.status(404).send('FAILED');
+      }
+
       // new user created
       if (newTempUser) {
-        // hash the password here
-        newTempUser.pw = newTempUser.generateHash(newTempUser.pw);
-        nev.registerTempUser(newTempUser, function(err) {
+        var URL = newTempUser[nev.options.URLFieldName];
+
+        nev.sendVerificationEmail(email, URL, function(err, info) {
           res.json({
             msg: 'An email has been sent to you. Please check it to verify your account.'
           });
@@ -88,9 +110,11 @@ app.get('/email-verification/:URL', function(req, res) {
 
   nev.confirmTempUser(url, function(err, user) {
     if (user) {
-      setTimeout(function() {
-        res.redirect('/');
-      }, 5000);
+      nev.sendConfirmationEmail(user['email'], function(err, info) {
+        res.send('You have been confirmed!');
+      });
+    } else {
+      res.status(404).send('FAILED');
     }
   });
 });
