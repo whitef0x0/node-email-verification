@@ -12,7 +12,8 @@
     "lint:main": "jshint --reporter=node_modules/jshint-stylish index.js",
     "lint:test": "jshint --reporter=node_modules/jshint-stylish test/*.js",
     "lint": "npm run lint:main && npm run lint:examples && npm run lint:test",
-    "test": "mocha"
+    "test": "mocha",
+		"posttest": "jshint index.js"
   },
   "repository": {
     "type": "git",
