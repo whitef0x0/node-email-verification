@@ -79,13 +79,15 @@ module.exports = function(mongoose) {
    * @func configure
    * @param {object} o - options to be changed
    */
-  var configure = function(o) {
-    for (var key in o) {
-      if (o.hasOwnProperty(key)) {
-        options[key] = o[key];
+  var configure = function(optionsToConfigure, callback) {
+    for (var key in optionsToConfigure) {
+      if (optionsToConfigure.hasOwnProperty(key)) {
+        options[key] = optionsToConfigure[key];
       }
     }
     transporter = nodemailer.createTransport(options.transportOptions);
+
+    return callback(null, options);
   };
 
 
@@ -98,7 +100,10 @@ module.exports = function(mongoose) {
    * @param {object} User - the persistent User model.
    * @return {object} the temporary user model
    */
-  var generateTempUserModel = function(User) {
+  var generateTempUserModel = function(User, callback) {
+    if (!User) {
+      return callback(new TypeError('Persistent user model undefined.'), null);
+    }
     var tempUserSchemaObject = {}, // a copy of the schema
       tempUserSchema;
 
@@ -124,7 +129,7 @@ module.exports = function(mongoose) {
 
     options.tempUserModel = mongoose.model(options.tempUserCollection, tempUserSchema);
 
-    return mongoose.model(options.tempUserCollection);
+    return callback(null, mongoose.model(options.tempUserCollection));
   };
 
 
