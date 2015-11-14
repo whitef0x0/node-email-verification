@@ -5,6 +5,15 @@ var randtoken = require('rand-token'),
 
 module.exports = function(mongoose) {
 
+  var isPositiveInteger = function(x) {
+    return ((parseInt(x, 10) === x) && (x >= 0));
+  };
+
+  var createOptionError = function(optionName, optionValue, expectedType) {
+    return new TypeError('Expected ' + optionName + ' to be a ' + expectedType + ', got ' + 
+      typeof optionValue);
+  };
+
   /**
    * Retrieve a nested value of an object given a string, using dot notation.
    *
@@ -86,6 +95,46 @@ module.exports = function(mongoose) {
       }
     }
     transporter = nodemailer.createTransport(options.transportOptions);
+
+    var err;
+
+    if (typeof options.verificationURL !== 'string') {
+      err = err || createOptionError('verificationURL', options.verificationURL, 'string');
+    } else if (options.verificationURL.indexOf('${URL}') === -1) {
+      err = err || new Error('Verification URL does not contain ${URL}');
+    }
+
+    if (typeof options.URLLength !== 'number') {
+      err = err || createOptionError('URLLength', options.URLLength, 'number');
+    } else if (!isPositiveInteger(options.URLLength)) {
+      err = err || new Error('URLLength must be a positive integer');
+    }
+
+    if (typeof options.tempUserCollection !== 'string') {
+      err = err || createOptionError('tempUserCollection', options.tempUserCollection, 'string');
+    }
+
+    if (typeof options.emailFieldName !== 'string') {
+      err = err || createOptionError('emailFieldName', options.emailFieldName, 'string');
+    }
+
+    if (typeof options.passwordFieldName !== 'string') {
+      err = err || createOptionError('passwordFieldName', options.passwordFieldName, 'string');
+    }
+
+    if (typeof options.URLFieldName !== 'string') {
+      err = err || createOptionError('URLFieldName', options.URLFieldName, 'string');
+    }
+
+    if (typeof options.expirationTime !== 'number') {
+      err = err || createOptionError('expirationTime', options.expirationTime, 'number');
+    } else if (!isPositiveInteger(options.expirationTime)) {
+      err = err || new Error('expirationTime must be a positive integer');
+    }
+
+    if (err) {
+      return callback(err, null);
+    }
 
     return callback(null, options);
   };
