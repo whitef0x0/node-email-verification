@@ -232,8 +232,9 @@ module.exports = function(mongoose) {
     var r = /\$\{URL\}/g;
 
     // inject newly-created URL into the email's body and FIRE
+    // stringify --> parse is used to deep copy
     var URL = options.verificationURL.replace(r, url),
-      mailOptions = options.verifyMailOptions;
+      mailOptions = JSON.parse(JSON.stringify(options.verifyMailOptions));
 
     mailOptions.to = email;
     mailOptions.html = mailOptions.html.replace(r, URL);
@@ -250,7 +251,7 @@ module.exports = function(mongoose) {
    * @param {function} callback - the callback to pass to Nodemailer's transporter
    */
   var sendConfirmationEmail = function(email, callback) {
-    var mailOptions = options.confirmMailOptions;
+    var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
     mailOptions.to = email;
     transporter.sendMail(mailOptions, callback);
   };

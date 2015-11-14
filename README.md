@@ -175,11 +175,13 @@ nev.resendVerificationEmail(email, function(err, userFound) {
 
 To see a fully functioning example that uses Express as the backend, check out the [**examples section**](https://github.com/SaintDako/node-email-verification/tree/master/examples/express).
 
-## API
-### `configure(options)`
-Changes the default configuration by passing an object of options; see the section below for a list of all options.
+**NEV supports Bluebird's PromisifyAll!** Check out the examples section for that too.
 
-### `generateTempUserModel(UserModel)`
+## API
+### `configure(optionsToConfigure, callback(err, options))`
+Changes the default configuration by passing an object of options to configure (`optionsToConfigure`); see the section below for a list of all options. `options` will be the result of the configuration, with the default values specified below if they were not given. If there are no errors, `err` is `null`.
+
+### `generateTempUserModel(UserModel, callback(err, tempUserModel))`
 Generates a Mongoose Model for the temporary user based off of `UserModel`, the persistent user model. The temporary model is essentially a duplicate of the persistent model except that it has the field `{GENERATED_VERIFYING_URL: String}` for the randomly generated URL by default (the field name can be changed in the options). If the persistent model has the field `createdAt`, then an expiration time (`expires`) is added to it with a default value of 24 hours; otherwise, the field is created as such:
 
 ```javascript
@@ -193,6 +195,8 @@ Generates a Mongoose Model for the temporary user based off of `UserModel`, the 
     ...
 }
 ```
+
+`tempUserModel` is the Mongoose model that is created for the temporary user. If there are no errors, `err` is `null`.
 
 Note that `createdAt` will not be transferred to persistent storage (yet?).
 

@@ -6,15 +6,19 @@ var stubTransport = require('nodemailer-stub-transport');
 var user = require('../examples/express/app/userModel'); // sample user schema
 mongoose.connect('mongodb://localhost/test_database'); // needed for testing
 
-
-nev.generateTempUserModel(user);
-nev.configure({
-  transportOptions: stubTransport(),
-  persistentUserModel: user,
-  passwordFieldName: 'pw',
-});
-
 describe('config & set up tests', function() {
+
+  it('Generates a temp user model', function(done) {
+    nev.generateTempUserModel(user, done);
+  });
+
+  it('Configures the options', function(done) {
+    nev.configure({
+      transportOptions: stubTransport(),
+      persistentUserModel: user,
+      passwordFieldName: 'pw',
+    }, done);
+  });
 
   it('Tests the option object', function() {
     assert.typeOf(nev.options.URLLength, 'number', 'URL Length must be a number');

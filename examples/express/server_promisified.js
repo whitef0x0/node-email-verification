@@ -3,7 +3,8 @@ var express = require('express'),
   app = express(),
   mongoose = require('mongoose'),
   bcrypt = require('bcryptjs'),
-  nev = require('../../index')(mongoose);
+  Promise = require('bluebird'),
+  nev = Promise.promisifyAll(require('../../index')(mongoose));
 mongoose.connect('mongodb://localhost/YOUR_DB');
 
 // our persistent user model
@@ -25,11 +26,11 @@ myHasher = function(password, tempUserData, insertTempUser, callback) {
 };
 
 // NEV configuration =====================
-nev.configure({
+nev.configureAsync({
   persistentUserModel: User,
   expirationTime: 600, // 10 minutes
 
-  verificationURL: 'http://localhost:8000/email-verification/${URL}',
+  verificationURL: 'http://localhost:9000/email-verification/${URL}',
   transportOptions: {
     service: 'Gmail',
     auth: {
@@ -40,22 +41,17 @@ nev.configure({
 
   hashingFunction: myHasher,
   passwordFieldName: 'pw',
-}, function(err, options) {
-  if (err) {
-    console.log(err);
-    return;
-  }
-
-  console.log('configured!');
-});
-
-nev.generateTempUserModel(User, function(err, tempUserModel) {
-  if (err) {
-    console.log(err);
-    return;
-  }
-
-  console.log('generated temp user model!');
+})
+.then(function(options) {
+  console.log('configured: ' + (typeof options === 'object'));
+  return nev.generateTempUserModelAsync(User);
+})
+.then(function(tempUserModel) {
+  console.log('generated temp user model: ' + (typeof tempUserModel === 'function'));
+})
+.catch(function(err) {
+  console.log('ERROR!');
+  console.log(err);
 });
 
 
@@ -78,20 +74,11 @@ app.post('/', function(req, res) {
       pw: pw
     });
 
-    nev.createTempUser(newUser, function(err, newTempUser) {
-      if (err) {
-        return res.status(404).send('FAILED');
-      }
-
-      // new user created
+    nev.createTempUserAsync(newUser)
+    .then(function(newTempUser) {
       if (newTempUser) {
         var URL = newTempUser[nev.options.URLFieldName];
-
-        nev.sendVerificationEmail(email, URL, function(err, info) {
-          res.json({
-            msg: 'An email has been sent to you. Please check it to verify your account.'
-          });
-        });
+        return nev.sendVerificationEmailAsync(email, URL);
 
       // user already exists in temporary collection!
       } else {
@@ -99,11 +86,20 @@ app.post('/', function(req, res) {
           msg: 'You have already signed up. Please check your email to verify your account.'
         });
       }
+    })
+    .then(function(info) {
+      res.json({
+        msg: 'An email has been sent to you. Please check it to verify your account.'
+      });
+    })
+    .catch(function() {
+      return res.status(404).send('FAILED');
     });
 
   // resend verification button was clicked
   } else {
-    nev.resendVerificationEmail(email, function(err, userFound) {
+    nev.resendVerificationEmailAsync(email)
+    .then(function(userFound) {
       if (userFound) {
         res.json({
           msg: 'An email has been sent to you, yet again. Please check it to verify your account.'
@@ -113,6 +109,9 @@ app.post('/', function(req, res) {
           msg: 'Your verification code has expired. Please sign up again.'
         });
       }
+    })
+    .catch(function() {
+      return res.status(404).send('FAILED');
     });
   }
 });
@@ -122,17 +121,22 @@ app.post('/', function(req, res) {
 app.get('/email-verification/:URL', function(req, res) {
   var url = req.params.URL;
 
-  nev.confirmTempUser(url, function(err, user) {
+  nev.confirmTempUserAsync(url)
+  .then(function(user) {
     if (user) {
-      nev.sendConfirmationEmail(user['email'], function(err, info) {
-        res.send('You have been confirmed!');
-      });
+      nev.sendConfirmationEmailAsync(user['email']);
     } else {
       res.status(404).send('FAILED');
     }
+  })
+  .then(function(info) {
+    res.send('You have been confirmed!');
+  })
+  .catch(function() {
+    res.status(404).send('FAILED');
   });
 });
 
 
-app.listen(8000);
-console.log('Express & NEV example listening on 8000...');
+app.listen(9000);
+console.log('Express & NEV PROMISIFIED! example listening on 9000...');
