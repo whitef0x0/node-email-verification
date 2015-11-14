@@ -89,7 +89,8 @@ app.post('/', function(req, res) {
     })
     .then(function(info) {
       res.json({
-        msg: 'An email has been sent to you. Please check it to verify your account.'
+        msg: 'An email has been sent to you. Please check it to verify your account.',
+        info: info
       });
     })
     .catch(function() {
@@ -111,7 +112,7 @@ app.post('/', function(req, res) {
       }
     })
     .catch(function() {
-      return res.status(404).send('FAILED');
+      return res.status(404).send('ERROR: resending verification email FAILED');
     });
   }
 });
@@ -124,13 +125,16 @@ app.get('/email-verification/:URL', function(req, res) {
   nev.confirmTempUserAsync(url)
   .then(function(user) {
     if (user) {
-      nev.sendConfirmationEmailAsync(user['email']);
+      nev.sendConfirmationEmailAsync(user.email);
     } else {
-      res.status(404).send('FAILED');
+      res.status(404).send('ERROR: confriming temp user FAILED');
     }
   })
   .then(function(info) {
-    res.send('You have been confirmed!');
+    res.json({
+      msg: 'You have been confirmed!',
+      info: info
+    });
   })
   .catch(function() {
     res.status(404).send('FAILED');

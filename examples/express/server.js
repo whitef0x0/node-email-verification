@@ -33,8 +33,10 @@ nev.configure({
   transportOptions: {
     service: 'Gmail',
     auth: {
-      user: 'yoursupercoolemailyeah@gmail.com',
-      pass: 'yoursupersecurepassword'
+      // user: 'yoursupercoolemailyeah@gmail.com',
+      // pass: 'yoursupersecurepassword'
+      user: 'numbersjsinfo@gmail.com',
+      pass: 'j9IhEJXr'
     }
   },
 
@@ -46,7 +48,7 @@ nev.configure({
     return;
   }
 
-  console.log('configured!');
+  console.log('configured: ' + (typeof options === 'object'));
 });
 
 nev.generateTempUserModel(User, function(err, tempUserModel) {
@@ -55,7 +57,7 @@ nev.generateTempUserModel(User, function(err, tempUserModel) {
     return;
   }
 
-  console.log('generated temp user model!');
+  console.log('generated temp user model: ' + (typeof tempUserModel === 'function'));
 });
 
 
@@ -80,7 +82,7 @@ app.post('/', function(req, res) {
 
     nev.createTempUser(newUser, function(err, newTempUser) {
       if (err) {
-        return res.status(404).send('FAILED');
+        return res.status(404).send('ERROR: creating temp user FAILED');
       }
 
       // new user created
@@ -88,8 +90,12 @@ app.post('/', function(req, res) {
         var URL = newTempUser[nev.options.URLFieldName];
 
         nev.sendVerificationEmail(email, URL, function(err, info) {
+          if (err) {
+            return res.status(404).send('ERROR: sending verification email FAILED');
+          }
           res.json({
-            msg: 'An email has been sent to you. Please check it to verify your account.'
+            msg: 'An email has been sent to you. Please check it to verify your account.',
+            info: info
           });
         });
 
@@ -104,6 +110,9 @@ app.post('/', function(req, res) {
   // resend verification button was clicked
   } else {
     nev.resendVerificationEmail(email, function(err, userFound) {
+      if (err) {
+        return res.status(404).send('ERROR: resending verification email FAILED');
+      }
       if (userFound) {
         res.json({
           msg: 'An email has been sent to you, yet again. Please check it to verify your account.'
@@ -124,15 +133,20 @@ app.get('/email-verification/:URL', function(req, res) {
 
   nev.confirmTempUser(url, function(err, user) {
     if (user) {
-      nev.sendConfirmationEmail(user['email'], function(err, info) {
-        res.send('You have been confirmed!');
+      nev.sendConfirmationEmail(user.email, function(err, info) {
+        if (err) {
+          return res.status(404).send('ERROR: sending confirmation email FAILED');
+        }
+        res.json({
+          msg: 'CONFIRMED!',
+          info: info
+        });
       });
     } else {
-      res.status(404).send('FAILED');
+      return res.status(404).send('ERROR: confirming temp user FAILED');
     }
   });
 });
-
 
 app.listen(8000);
 console.log('Express & NEV example listening on 8000...');

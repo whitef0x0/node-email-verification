@@ -262,21 +262,21 @@ var options = {
 }
 ```
 
-- **verificationURL**: the URL for the user to click to verify their account. `${URL}` determines where the randomly generated part of the URL goes - it must be included.
-- **URLLength**: the length of the randomly-generated string.
+- **verificationURL**: the URL for the user to click to verify their account. `${URL}` determines where the randomly generated part of the URL goes, and is needed. Required.
+- **URLLength**: the length of the randomly-generated string. Must be a positive integer. Required.
 
 - **persistentUserModel**: the Mongoose Model for the persistent user.
 - **tempUserModel**: the Mongoose Model for the temporary user. you can generate the model by using `generateTempUserModel` and passing it the persistent User model you have defined, or you can define your own model in a separate file and pass it as an option in `configure` instead.
 - **tempUserCollection**: the name of the MongoDB collection for temporary users.
-- **emailFieldName**: the field name for the user's email. if the field is nested within another object(s), use dot notation to access it, e.g. `{local: {email: ...}}` would use `'local.email'`.
-- **passwordFieldName**: the field name for the user's password. If the field is nested within another object(s), use dot notation to access it (see above).
-- **URLFieldName**: the field name for the randomly-generated URL.
-- **expirationTime**: the amount of time that the temporary user will be kept in collection, measured in seconds.
+- **emailFieldName**: the field name for the user's email. If the field is nested within another object(s), use dot notation to access it, e.g. `{local: {email: ...}}` would use `'local.email'`. Required.
+- **passwordFieldName**: the field name for the user's password. If the field is nested within another object(s), use dot notation to access it (see above). Required.
+- **URLFieldName**: the field name for the randomly-generated URL. Required.
+- **expirationTime**: the amount of time that the temporary user will be kept in collection, measured in seconds. Must be a positive integer. Required.
 
 - **transportOptions**: the options that will be passed to `nodemailer.createTransport`.
-- **verifyMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email for verification. you must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
+- **verifyMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email for verification. You must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
 - **sendConfirmationEmail**: send an email upon the user verifiying their account to notify them of verification.
-- **confirmMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email to notify the user that their account has been verified. you must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
+- **confirmMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email to notify the user that their account has been verified. You must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
 
 - **hashingFunction**: the function that hashes passwords. Must take four parameters `password, tempUserData, insertTempUser, callback` and return `insertTempUser(hash, tempUserData, callback)`.
 
