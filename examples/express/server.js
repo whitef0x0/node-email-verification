@@ -33,10 +33,8 @@ nev.configure({
   transportOptions: {
     service: 'Gmail',
     auth: {
-      // user: 'yoursupercoolemailyeah@gmail.com',
-      // pass: 'yoursupersecurepassword'
-      user: 'numbersjsinfo@gmail.com',
-      pass: 'j9IhEJXr'
+      user: 'yoursupercoolemailyeah@gmail.com',
+      pass: 'yoursupersecurepassword'
     }
   },
 
