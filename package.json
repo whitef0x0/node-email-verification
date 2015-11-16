@@ -46,6 +46,7 @@
     "jshint": "^2.8.0",
     "jshint-stylish": "^2.0.1",
     "mocha": "*",
-    "nodemailer-stub-transport": "^1.0.0"
+    "nodemailer-stub-transport": "^1.0.0",
+    "bluebird": "*"
   }
 }
