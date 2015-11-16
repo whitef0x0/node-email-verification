@@ -5,6 +5,15 @@ var randtoken = require('rand-token'),
 
 module.exports = function(mongoose) {
 
+  var isPositiveInteger = function(x) {
+    return ((parseInt(x, 10) === x) && (x >= 0));
+  };
+
+  var createOptionError = function(optionName, optionValue, expectedType) {
+    return new TypeError('Expected ' + optionName + ' to be a ' + expectedType + ', got ' + 
+      typeof optionValue);
+  };
+
   /**
    * Retrieve a nested value of an object given a string, using dot notation.
    *
@@ -79,13 +88,55 @@ module.exports = function(mongoose) {
    * @func configure
    * @param {object} o - options to be changed
    */
-  var configure = function(o) {
-    for (var key in o) {
-      if (o.hasOwnProperty(key)) {
-        options[key] = o[key];
+  var configure = function(optionsToConfigure, callback) {
+    for (var key in optionsToConfigure) {
+      if (optionsToConfigure.hasOwnProperty(key)) {
+        options[key] = optionsToConfigure[key];
       }
     }
     transporter = nodemailer.createTransport(options.transportOptions);
+
+    var err;
+
+    if (typeof options.verificationURL !== 'string') {
+      err = err || createOptionError('verificationURL', options.verificationURL, 'string');
+    } else if (options.verificationURL.indexOf('${URL}') === -1) {
+      err = err || new Error('Verification URL does not contain ${URL}');
+    }
+
+    if (typeof options.URLLength !== 'number') {
+      err = err || createOptionError('URLLength', options.URLLength, 'number');
+    } else if (!isPositiveInteger(options.URLLength)) {
+      err = err || new Error('URLLength must be a positive integer');
+    }
+
+    if (typeof options.tempUserCollection !== 'string') {
+      err = err || createOptionError('tempUserCollection', options.tempUserCollection, 'string');
+    }
+
+    if (typeof options.emailFieldName !== 'string') {
+      err = err || createOptionError('emailFieldName', options.emailFieldName, 'string');
+    }
+
+    if (typeof options.passwordFieldName !== 'string') {
+      err = err || createOptionError('passwordFieldName', options.passwordFieldName, 'string');
+    }
+
+    if (typeof options.URLFieldName !== 'string') {
+      err = err || createOptionError('URLFieldName', options.URLFieldName, 'string');
+    }
+
+    if (typeof options.expirationTime !== 'number') {
+      err = err || createOptionError('expirationTime', options.expirationTime, 'number');
+    } else if (!isPositiveInteger(options.expirationTime)) {
+      err = err || new Error('expirationTime must be a positive integer');
+    }
+
+    if (err) {
+      return callback(err, null);
+    }
+
+    return callback(null, options);
   };
 
 
@@ -98,7 +149,10 @@ module.exports = function(mongoose) {
    * @param {object} User - the persistent User model.
    * @return {object} the temporary user model
    */
-  var generateTempUserModel = function(User) {
+  var generateTempUserModel = function(User, callback) {
+    if (!User) {
+      return callback(new TypeError('Persistent user model undefined.'), null);
+    }
     var tempUserSchemaObject = {}, // a copy of the schema
       tempUserSchema;
 
@@ -124,7 +178,7 @@ module.exports = function(mongoose) {
 
     options.tempUserModel = mongoose.model(options.tempUserCollection, tempUserSchema);
 
-    return mongoose.model(options.tempUserCollection);
+    return callback(null, mongoose.model(options.tempUserCollection));
   };
 
 
@@ -227,8 +281,9 @@ module.exports = function(mongoose) {
     var r = /\$\{URL\}/g;
 
     // inject newly-created URL into the email's body and FIRE
+    // stringify --> parse is used to deep copy
     var URL = options.verificationURL.replace(r, url),
-      mailOptions = options.verifyMailOptions;
+      mailOptions = JSON.parse(JSON.stringify(options.verifyMailOptions));
 
     mailOptions.to = email;
     mailOptions.html = mailOptions.html.replace(r, URL);
@@ -245,7 +300,7 @@ module.exports = function(mongoose) {
    * @param {function} callback - the callback to pass to Nodemailer's transporter
    */
   var sendConfirmationEmail = function(email, callback) {
-    var mailOptions = options.confirmMailOptions;
+    var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
     mailOptions.to = email;
     transporter.sendMail(mailOptions, callback);
   };

@@ -1,6 +1,6 @@
 {
   "name": "email-verification",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Verify email sign-up using MongoDB.",
   "main": "index.js",
   "scripts": {
@@ -46,6 +46,7 @@
     "jshint": "^2.8.0",
     "jshint-stylish": "^2.0.1",
     "mocha": "*",
-    "nodemailer-stub-transport": "^1.0.0"
+    "nodemailer-stub-transport": "^1.0.0",
+    "bluebird": "*"
   }
 }

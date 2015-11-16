@@ -175,11 +175,13 @@ nev.resendVerificationEmail(email, function(err, userFound) {
 
 To see a fully functioning example that uses Express as the backend, check out the [**examples section**](https://github.com/SaintDako/node-email-verification/tree/master/examples/express).
 
-## API
-### `configure(options)`
-Changes the default configuration by passing an object of options; see the section below for a list of all options.
+**NEV supports Bluebird's PromisifyAll!** Check out the examples section for that too.
 
-### `generateTempUserModel(UserModel)`
+## API
+### `configure(optionsToConfigure, callback(err, options))`
+Changes the default configuration by passing an object of options to configure (`optionsToConfigure`); see the section below for a list of all options. `options` will be the result of the configuration, with the default values specified below if they were not given. If there are no errors, `err` is `null`.
+
+### `generateTempUserModel(UserModel, callback(err, tempUserModel))`
 Generates a Mongoose Model for the temporary user based off of `UserModel`, the persistent user model. The temporary model is essentially a duplicate of the persistent model except that it has the field `{GENERATED_VERIFYING_URL: String}` for the randomly generated URL by default (the field name can be changed in the options). If the persistent model has the field `createdAt`, then an expiration time (`expires`) is added to it with a default value of 24 hours; otherwise, the field is created as such:
 
 ```javascript
@@ -193,6 +195,8 @@ Generates a Mongoose Model for the temporary user based off of `UserModel`, the 
     ...
 }
 ```
+
+`tempUserModel` is the Mongoose model that is created for the temporary user. If there are no errors, `err` is `null`.
 
 Note that `createdAt` will not be transferred to persistent storage (yet?).
 
@@ -258,21 +262,21 @@ var options = {
 }
 ```
 
-- **verificationURL**: the URL for the user to click to verify their account. `${URL}` determines where the randomly generated part of the URL goes - it must be included.
-- **URLLength**: the length of the randomly-generated string.
+- **verificationURL**: the URL for the user to click to verify their account. `${URL}` determines where the randomly generated part of the URL goes, and is needed. Required.
+- **URLLength**: the length of the randomly-generated string. Must be a positive integer. Required.
 
 - **persistentUserModel**: the Mongoose Model for the persistent user.
 - **tempUserModel**: the Mongoose Model for the temporary user. you can generate the model by using `generateTempUserModel` and passing it the persistent User model you have defined, or you can define your own model in a separate file and pass it as an option in `configure` instead.
 - **tempUserCollection**: the name of the MongoDB collection for temporary users.
-- **emailFieldName**: the field name for the user's email. if the field is nested within another object(s), use dot notation to access it, e.g. `{local: {email: ...}}` would use `'local.email'`.
-- **passwordFieldName**: the field name for the user's password. If the field is nested within another object(s), use dot notation to access it (see above).
-- **URLFieldName**: the field name for the randomly-generated URL.
-- **expirationTime**: the amount of time that the temporary user will be kept in collection, measured in seconds.
+- **emailFieldName**: the field name for the user's email. If the field is nested within another object(s), use dot notation to access it, e.g. `{local: {email: ...}}` would use `'local.email'`. Required.
+- **passwordFieldName**: the field name for the user's password. If the field is nested within another object(s), use dot notation to access it (see above). Required.
+- **URLFieldName**: the field name for the randomly-generated URL. Required.
+- **expirationTime**: the amount of time that the temporary user will be kept in collection, measured in seconds. Must be a positive integer. Required.
 
 - **transportOptions**: the options that will be passed to `nodemailer.createTransport`.
-- **verifyMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email for verification. you must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
+- **verifyMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email for verification. You must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
 - **sendConfirmationEmail**: send an email upon the user verifiying their account to notify them of verification.
-- **confirmMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email to notify the user that their account has been verified. you must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
+- **confirmMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email to notify the user that their account has been verified. You must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
 
 - **hashingFunction**: the function that hashes passwords. Must take four parameters `password, tempUserData, insertTempUser, callback` and return `insertTempUser(hash, tempUserData, callback)`.
 
