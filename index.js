@@ -199,9 +199,9 @@ module.exports = function(mongoose) {
 
     newTempUser.save(function(err, tempUser) {
       if (err) {
-        return callback(err, null);
+        return callback(err, null, null);
       }
-      return callback(null, tempUser);
+      return callback(null, null, tempUser);
     });
   };
 
@@ -214,9 +214,9 @@ module.exports = function(mongoose) {
    *
    * @func createTempUser
    * @param {object} user - an instance of the persistent User model
-   * @param {function} callback - a callback function that takes an error (if one exists)
-   *   and the new temporary user as arguments; if the user has already signed up or if
-   *   there is an error then this value is null then null is returned
+   * @param {function} callback - a callback function that takes an error (if one exists),
+   *   a persistent user (if it exists) and the new temporary user as arguments; if the
+   *   temporary user already exists, then null is returned in its place
    * @return {function} returns the callback function
    */
   var createTempUser = function(user, callback) {
@@ -229,24 +229,24 @@ module.exports = function(mongoose) {
     var query = {};
     query[options.emailFieldName] = user[options.emailFieldName];
 
-    options.persistentUserModel.findOne(query, function(err, existingUser) {
+    options.persistentUserModel.findOne(query, function(err, existingPersistentUser) {
       if (err) {
-        return callback(err, null);
+        return callback(err, null, null);
       }
 
       // user has already signed up and confirmed their account
-      if (existingUser) {
-        return callback(null, null);
+      if (existingPersistentUser) {
+        return callback(null, existingPersistentUser, null);
       }
 
       options.tempUserModel.findOne(query, function(err, existingTempUser) {
         if (err) {
-          return callback(err, null);
+          return callback(err, null, null);
         }
 
         // user has already signed up but not yet confirmed their account
         if (existingTempUser) {
-          return callback(null, null);
+          return callback(null, null, null);
         } else {
           var tempUserData = {};
 
