@@ -162,16 +162,20 @@ nev.confirmTempUser(url, function(err, user) {
 });
 ```
 
-If you want the user to be able to request another verification email, simply call `resendVerificationEmail`, which takes the user's email address and a callback with two parameters: an error, and a boolean representing whether or not the user was found.
+If you want the user to be able to request another verification email, simply call `resendVerificationEmail`, which takes the user's email address and a callback with three parameters: an error, a boolean representing the user was found in the persistent collection, and a boolean representing whether or not the user was found in the temporary collection.
 
 ```javascript
 var email = '...';
-nev.resendVerificationEmail(email, function(err, userFound) {
+nev.resendVerificationEmail(email, function(err, persistentUserFound, tempUserFound) {
     if (err)
         // handle error...
 
-    if (userFound)
+    if (persistentUserFound)
+        // flash message saying user already signed up...
+
+    else if (userFound)
         // email has been sent
+
     else
         // flash message of failure...
 });
@@ -218,7 +222,7 @@ Transfers a temporary user (found by `url`) from the temporary collection to the
 ### `sendConfirmationEmail(email, callback(err, info))`
 Sends a confirmation email to to the email provided. If sending the email succeeds, then `err` will be `null` and `info` will be some value. See [Nodemailer's documentation](https://github.com/andris9/Nodemailer#sending-mail) for information.
 
-### `resendVerificationEmail(email, callback(err, userFound))`
+### `resendVerificationEmail(email, callback(err, persistentUserFound, tempUserFound))`
 Resends the verification email to a user, given their email. `userFound` is `true` if the user has been found in the temporary collection (i.e. their data hasn't expired yet) and `false` otherwise. If there are no errors, `err` is `null`.
 
 

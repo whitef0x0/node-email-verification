@@ -366,31 +366,42 @@ module.exports = function(mongoose) {
     var query = {};
     query[options.emailFieldName] = email;
 
-    options.tempUserModel.findOne(query, function(err, tempUser) {
+    options.persistentUserModel.findOne(query, function(err, existingPersistentUser) {
       if (err) {
-        return callback(err, null);
+        return callback(err, null, null);
       }
 
-      // user found (i.e. user re-requested verification email before expiration)
-      if (tempUser) {
-        // generate new user token
-        tempUser[options.URLFieldName] = randtoken.generate(options.URLLength);
-        tempUser.save(function(err) {
-          if (err) {
-            return callback(err, null);
-          }
+      // user has already signed up and confirmed their account
+      if (existingPersistentUser) {
+        return callback(null, true, null);
+      }
 
-          sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err) {
+      options.tempUserModel.findOne(query, function(err, tempUser) {
+        if (err) {
+          return callback(err, null, null);
+        }
+
+        // user found (i.e. user re-requested verification email before expiration)
+        if (tempUser) {
+          // generate new user token
+          tempUser[options.URLFieldName] = randtoken.generate(options.URLLength);
+          tempUser.save(function(err) {
             if (err) {
-              return callback(err, null);
+              return callback(err, null, null);
             }
-            return callback(null, true);
-          });
-        });
 
-      } else {
-        return callback(null, false);
-      }
+            sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err) {
+              if (err) {
+                return callback(err, null, null);
+              }
+              return callback(null, false, true);
+            });
+          });
+
+        } else {
+          return callback(null, false, false);
+        }
+      });
     });
   };
 

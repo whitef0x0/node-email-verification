@@ -124,8 +124,15 @@ app.post('/', function(req, res) {
   // resend verification button was clicked
   } else {
     nev.resendVerificationEmailAsync(email)
-    .then(function(userFound) {
-      if (userFound) {
+    .then(function(data) {
+      var persistentUserFound = data[0],
+        tempUserFound = data[1];
+
+      if (persistentUserFound) {
+        res.json({
+          msg: 'You have already signed up and confirmed your account. Did you forget your password?'
+        });
+      } else if (tempUserFound) {
         res.json({
           msg: 'An email has been sent to you, yet again. Please check it to verify your account.'
         });

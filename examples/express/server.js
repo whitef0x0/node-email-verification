@@ -114,11 +114,16 @@ app.post('/', function(req, res) {
 
   // resend verification button was clicked
   } else {
-    nev.resendVerificationEmail(email, function(err, userFound) {
+    nev.resendVerificationEmail(email, function(err, persistentUserFound, tempUserFound) {
       if (err) {
         return res.status(404).send('ERROR: resending verification email FAILED');
       }
-      if (userFound) {
+
+      if (persistentUserFound) {
+        res.json({
+          msg: 'You have already signed up and confirmed your account. Did you forget your password?'
+        });
+      } else if (tempUserFound) {
         res.json({
           msg: 'An email has been sent to you, yet again. Please check it to verify your account.'
         });
