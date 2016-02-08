@@ -7,7 +7,7 @@ safe: false
 
 ### site serving configuration ###
 exclude: [CNAME, README.md, .gitignore]
-permalink: / ## disables post output
+permalink: /:title ## disables post output
 timezone: null
 lsi: false
 markdown: kramdown
@@ -15,9 +15,9 @@ highlighter: rouge
 
 
 ### content configuration ###
-title:       "SinglePaged - Title: Edit me in _config.yml!"
-keywords:    "SinglePaged, jekyll, template, github, blog, single page"
-description: "A single-page template for Jekyll based blogs (like what you'd use on github pages!)"
+title:       "Avi Srivastava"
+keywords:    "CV"
+description: "My page"
 source_link: "https://github.com/t413/SinglePaged"
 favicon:     #put a path like: "img/favicon.ico"
 touch_icon:  #put a path like: "img/apple-touch-icon.png"
