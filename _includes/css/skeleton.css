@@ -91,16 +91,16 @@
 
 .round-image {
  float: right;
- padding-bottom: 100px;
- width: 100px;
- height: 100px;
+ padding-bottom: 150px;
+ width: 150px;
+ height: 150px;
  background-image: url('img/me.png');
  background-size: cover;
  display: block;
  border-radius: 50%;
  -webkit-border-radius: 100px;
  -moz-border-radius: 100px;
- box-shadow: 0 0 20px rgba(70, 67, 58, 1);
+ box-shadow:0 0 20px rgba(70, 67, 58, 1);
  -webkit-box-shadow: 0 0 20px rgba(70, 67, 58, 1);
  -moz-box-shadow: 0 0 20px rgba(70, 67, 58, 1);
  #background-position: right top;
