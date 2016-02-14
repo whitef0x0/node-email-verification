@@ -68,7 +68,7 @@ hr {
 .center { text-align: center; }
 .left, .container .left { text-align: left; }
 
-.container h1, .container h2, .container h3, .container h4 {
+.container h1, .container h2, .container h3, .container h4 .container h5{
   margin-bottom: 20px;
   text-align: center;
   padding: 0 4%;
@@ -354,4 +354,9 @@ nav ul li:hover, nav ul li.active {
     -moz-column-count:    2;
     column-count:         2;
   }
+}
+
+.more-icons i:hover, .more-icons i:focus, .more-icons i:active {
+  -webkit-transform: scale(2) rotate(90deg);
+  transform: scale(1.3) rotate(5deg);
 }

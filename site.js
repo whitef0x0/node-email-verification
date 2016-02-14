@@ -27,6 +27,7 @@ $.extend($.easing,
 
         //attatch click listeners
     	navItems.on('click', function(event){
+          if ($(this).attr("href").charAt(0) == '#'){
     		event.preventDefault();
             var navID = $(this).attr("href").substring(1);
             disableScrollFn = true;
@@ -37,7 +38,8 @@ $.extend($.easing,
                     disableScrollFn = false;
                 }
             );
-    	});
+          }
+        });
 
         //populate lookup of clicable elements and destination sections
         populateDestinations(); //should also be run on browser resize, btw
@@ -57,9 +59,11 @@ $.extend($.easing,
 
     function populateDestinations() {
         navItems.each(function(){
-            var scrollID = $(this).attr('href').substring(1);
-            navs[scrollID] = (settings.activateParentNode)? this.parentNode : this;
-            sections[scrollID] = $(document.getElementById(scrollID)).offset().top;
+            if ($(this).attr("href").charAt(0) == '#'){
+                var scrollID = $(this).attr('href').substring(1);
+                navs[scrollID] = (settings.activateParentNode)? this.parentNode : this;
+                sections[scrollID] = $(document.getElementById(scrollID)).offset().top;
+            }
         });
     }
 

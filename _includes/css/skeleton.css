@@ -19,7 +19,6 @@
 .container .big.column   { width: 620px; }
 .container .full.column  { width: 940px; }
 
-
 /* ----- Tablet (Portrait) -- 768px ----- */
   @media only screen and (min-width: 768px) and (max-width: 959px) {
     .container               { width: 768px; }
@@ -89,3 +88,23 @@
     width: 0;
     height: 0;
   }
+
+.round-image {
+ float: right;
+ padding-bottom: 100px;
+ width: 100px;
+ height: 100px;
+ background-image: url('img/me.jpg');
+ background-size: cover;
+ display: block;
+ border-radius: 50%;
+ -webkit-border-radius: 100px;
+ -moz-border-radius: 100px;
+ box-shadow: 0 0 20px rgba(70, 67, 58, 1);
+ -webkit-box-shadow: 0 0 20px rgba(70, 67, 58, 1);
+ -moz-box-shadow: 0 0 20px rgba(70, 67, 58, 1);
+ #background-position: right top;
+ #background-attachment: fixed;
+}
+
+
