@@ -36,7 +36,7 @@
     .container .column        { margin:  1%; }
 
     .container .small.column { width: 48%; }
-    .container .half.column  { width: 48%; }
+    .container .half.column  { width: 96%; }
     .container .big.column   { width: 98%; }
     .container .full.column  { width: 98%; }
   }
