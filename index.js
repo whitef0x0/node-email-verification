@@ -1,10 +1,19 @@
 'use strict';
 
 var randtoken = require('rand-token'),
-  nodemailer = require('nodemailer'),
-  async = require('async');
+  async = require('async'),
+  nodemailer = require('nodemailer');
 
 module.exports = function(mongoose) {
+
+  var isPositiveInteger = function(x) {
+    return ((parseInt(x, 10) === x) && (x >= 0));
+  };
+
+  var createOptionError = function(optionName, optionValue, expectedType) {
+    return new TypeError('Expected ' + optionName + ' to be a ' + expectedType + ', got ' + 
+      typeof optionValue);
+  };
 
   /**
    * Retrieve a nested value of an object given a string, using dot notation.
@@ -36,11 +45,12 @@ module.exports = function(mongoose) {
     verificationURL: 'http://example.com/email-verification/${URL}',
     URLLength: 48,
 
-    //mongo-stuff
+    // mongo-stuff
     persistentUserModel: null,
     tempUserModel: null,
     tempUserCollection: 'temporary_users',
     emailFieldName: 'email',
+    passwordFieldName: 'password',
     URLFieldName: 'GENERATED_VERIFYING_URL',
     expirationTime: 86400,
 
@@ -80,10 +90,11 @@ module.exports = function(mongoose) {
         console.log(info.response);
       }
     },
+    hashingFunction: null,
   };
 
 
-  var transporter = nodemailer.createTransport(options.transportOptions);
+  var transporter;
 
   /**
    * Modify the default configuration.
@@ -91,13 +102,55 @@ module.exports = function(mongoose) {
    * @func configure
    * @param {object} o - options to be changed
    */
-  var configure = function(o) {
-    for (var key in o) {
-      if (o.hasOwnProperty(key)) {
-        options[key] = o[key];
+  var configure = function(optionsToConfigure, callback) {
+    for (var key in optionsToConfigure) {
+      if (optionsToConfigure.hasOwnProperty(key)) {
+        options[key] = optionsToConfigure[key];
       }
     }
     transporter = nodemailer.createTransport(options.transportOptions);
+
+    var err;
+
+    if (typeof options.verificationURL !== 'string') {
+      err = err || createOptionError('verificationURL', options.verificationURL, 'string');
+    } else if (options.verificationURL.indexOf('${URL}') === -1) {
+      err = err || new Error('Verification URL does not contain ${URL}');
+    }
+
+    if (typeof options.URLLength !== 'number') {
+      err = err || createOptionError('URLLength', options.URLLength, 'number');
+    } else if (!isPositiveInteger(options.URLLength)) {
+      err = err || new Error('URLLength must be a positive integer');
+    }
+
+    if (typeof options.tempUserCollection !== 'string') {
+      err = err || createOptionError('tempUserCollection', options.tempUserCollection, 'string');
+    }
+
+    if (typeof options.emailFieldName !== 'string') {
+      err = err || createOptionError('emailFieldName', options.emailFieldName, 'string');
+    }
+
+    if (typeof options.passwordFieldName !== 'string') {
+      err = err || createOptionError('passwordFieldName', options.passwordFieldName, 'string');
+    }
+
+    if (typeof options.URLFieldName !== 'string') {
+      err = err || createOptionError('URLFieldName', options.URLFieldName, 'string');
+    }
+
+    if (typeof options.expirationTime !== 'number') {
+      err = err || createOptionError('expirationTime', options.expirationTime, 'number');
+    } else if (!isPositiveInteger(options.expirationTime)) {
+      err = err || new Error('expirationTime must be a positive integer');
+    }
+
+    if (err) {
+      return callback(err, null);
+    }
+
+    return callback(null, options);
   };
 
 
@@ -108,8 +161,12 @@ module.exports = function(mongoose) {
    *
    * @func generateTempUserModel
    * @param {object} User - the persistent User model.
+   * @return {object} the temporary user model
    */
-  var generateTempUserModel = function(User) {
+  var generateTempUserModel = function(User, callback) {
+    if (!User) {
+      return callback(new TypeError('Persistent user model undefined.'), null);
+    }
     var tempUserSchemaObject = {}, // a copy of the schema
       tempUserSchema;
 
@@ -129,13 +186,37 @@ module.exports = function(mongoose) {
     tempUserSchema = mongoose.Schema(tempUserSchemaObject);
 
     // copy over the methods of the schema
-    Object.keys(User.schema.methods).forEach(function(meth) { // tread lightly 
+    Object.keys(User.schema.methods).forEach(function(meth) { // tread lightly
       tempUserSchema.methods[meth] = User.schema.methods[meth];
     });
 
     options.tempUserModel = mongoose.model(options.tempUserCollection, tempUserSchema);
 
-    return mongoose.model(options.tempUserCollection);
+    return callback(null, mongoose.model(options.tempUserCollection));
+  };
+
+
+  /**
+   * Helper function for actually inserting the temporary user into the database.
+   *
+   * @func insertTempUser
+   * @param {string} password - the user's password, possibly hashed
+   * @param {object} tempUserData - the temporary user's data
+   * @param {function} callback - a callback function, which takes an error and the
+   *   temporary user object as params
+   * @return {function} returns the callback function
+   */
+  var insertTempUser = function(password, tempUserData, callback) {
+    // password may or may not be hashed
+    tempUserData[options.passwordFieldName] = password;
+    var newTempUser = new options.tempUserModel(tempUserData);
+
+    newTempUser.save(function(err, tempUser) {
+      if (err) {
+        return callback(err, null);
+      }
+      return callback(null, tempUser);
+    });
   };
 
 
@@ -147,44 +228,57 @@ module.exports = function(mongoose) {
    *
    * @func createTempUser
    * @param {object} user - an instance of the persistent User model
-   * @return {object} null if user already exists; Mongoose Model instance otherwise
+   * @param {function} callback - a callback function that takes an error (if one exists)
+   *   and the new temporary user as arguments; if the user has already signed up or if
+   *   there is an error then this value is null then null is returned
+   * @return {function} returns the callback function
    */
   var createTempUser = function(user, callback) {
     if (!options.tempUserModel) {
-      throw new TypeError('Temporary user model not defined. Either you forgot to generate one or you did not predefine one.');
+      return callback(new TypeError('Temporary user model not defined. Either you forgot' +
+        'to generate one or you did not predefine one.'), null);
     }
 
     // create our mongoose query
     var query = {};
     query[options.emailFieldName] = user[options.emailFieldName];
 
-    options.tempUserModel.findOne(query, function(err, existingUser) {
+    options.persistentUserModel.findOne(query, function(err, existingUser) {
       if (err) {
         return callback(err, null);
       }
 
-      // user has already signed up...
+      // user has already signed up and confirmed their account
       if (existingUser) {
         return callback(null, null);
-      } else {
-        var tempUserData = {},
-          newTempUser;
-
-        // copy the credentials for the user
-        Object.keys(user._doc).forEach(function(field) {
-          tempUserData[field] = user[field];
-        });
-
-        tempUserData[options.URLFieldName] = randtoken.generate(options.URLLength);
-        newTempUser = new options.tempUserModel(tempUserData);
-
-        newTempUser.save(function(err, tempUser) {
-          if (err) {
-            return callback(err, null);
-          }
-          return callback(null, tempUser);
-        });
       }
+
+      options.tempUserModel.findOne(query, function(err, existingTempUser) {
+        if (err) {
+          return callback(err, null);
+        }
+
+        // user has already signed up but not yet confirmed their account
+        if (existingTempUser) {
+          return callback(null, null);
+        } else {
+          var tempUserData = {};
+
+          // copy the credentials for the user
+          Object.keys(user._doc).forEach(function(field) {
+            tempUserData[field] = user[field];
+          });
+
+          tempUserData[options.URLFieldName] = randtoken.generate(options.URLLength);
+
+          if (options.hashingFunction) {
+            return options.hashingFunction(tempUserData[options.passwordFieldName], tempUserData,
+              insertTempUser, callback);
+          } else {
+            return insertTempUser(tempUserData[options.passwordFieldName], tempUserData, callback);
+          }
+        }
+      });
     });
   };
 
@@ -195,11 +289,13 @@ module.exports = function(mongoose) {
    * @func sendVerificationEmail
    * @param {string} email - the user's email address.
    * @param {string} url - the unique url generated for the user.
+   * @param {function} callback - the callback to pass to Nodemailer's transporter
    */
   var sendVerificationEmail = function(email, url, callback) {
     var r = /\$\{URL\}/g;
 
     // inject newly-created URL into the email's body and FIRE
+    // stringify --> parse is used to deep copy
     var URL = options.verificationURL.replace(r, url),
       mailOptions = JSON.parse(JSON.stringify(options.verifyMailOptions));
 
@@ -216,9 +312,9 @@ module.exports = function(mongoose) {
   /**
    * Send an email to the user requesting confirmation.
    *
-   * @func sendVerificationEmail
+   * @func sendConfirmationEmail
    * @param {string} email - the user's email address.
-   * @param {string} url - the unique url generated for the user.
+   * @param {function} callback - the callback to pass to Nodemailer's transporter
    */
   var sendConfirmationEmail = function(email, callback) {
     var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
@@ -338,13 +434,21 @@ module.exports = function(mongoose) {
 
       // user found (i.e. user re-requested verification email before expiration)
       if (tempUser) {
-        sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err, info) {
+        // generate new user token
+        tempUser[options.URLFieldName] = randtoken.generate(options.URLLength);
+        tempUser.save(function(err) {
           if (err) {
             return callback(err, null);
           }
-          console.log(info);
-          return callback(null, true);
+
+          sendVerificationEmail(getNestedValue(tempUser, options.emailFieldName), tempUser[options.URLFieldName], function(err) {
+            if (err) {
+              return callback(err, null);
+            }
+            return callback(null, true);
+          });
         });
+
       } else {
         return callback(null, false);
       }
@@ -357,7 +461,6 @@ module.exports = function(mongoose) {
     configure: configure,
     generateTempUserModel: generateTempUserModel,
     createTempUser: createTempUser,
-    registerTempUser: registerTempUser,
     confirmTempUser: confirmTempUser,
     resendVerificationEmail: resendVerificationEmail,
     sendConfirmationEmail: sendConfirmationEmail,

@@ -1,67 +1,96 @@
-var assert = require('chai').assert;
 var should = require('chai').should();
-var expect = require('chai').expect;
 var mongoose = require('mongoose');
-var nev = require('../index');
+var nev = require('../index')(mongoose);
 var stubTransport = require('nodemailer-stub-transport');
 var user = require('../examples/express/app/userModel'); // sample user schema
-mongoose.connect("mongodb://localhost/test_database"); // needed for testing
+mongoose.connect('mongodb://localhost/test_database'); // needed for testing
+
+describe('config & set up tests', function() {
+
+  var tempUserModel;
+
+  it('Generates a temp user model', function(done) {
+    nev.generateTempUserModel(user, function(err, generatedTempUserModel) {
+      tempUserModel = generatedTempUserModel;
+      done();
+    });
+  });
+
+  describe('Test configuration error throwing', function() {
+
+    var defaultOptions;
+
+    before(function() {
+      defaultOptions = JSON.parse(JSON.stringify(nev.options));
+    });
 
 
-nev.generateTempUserModel(user);
-nev.configure({
-  transportOptions: stubTransport(),
-});
+    var tests = [
+      {field: 'verificationURL', wrongValue: 100, reason: 'type'},
+      {field: 'verificationURL', wrongValue: 'someurl', reason: 'value'},
+      {field: 'URLLength', wrongValue: 'str', reason: 'type'},
+      {field: 'URLLength', wrongValue: -20, reason: 'value'},
+      {field: 'URLLength', wrongValue: 5.5, reason: 'value'},
+      {field: 'tempUserCollection', wrongValue: null, reason: 'type'},
+      {field: 'emailFieldName', wrongValue: [], reason: 'type'},
+      {field: 'passwordFieldName', wrongValue: {}, reason: 'type'},
+      {field: 'URLFieldName', wrongValue: 5.5, reason: 'type'},
+      {field: 'expirationTime', wrongValue: '100', reason: 'type'},
+      {field: 'expirationTime', wrongValue: -42, reason: 'value'},
+      {field: 'expirationTime', wrongValue: 4.2, reason: 'value'},
+    ];
 
-describe('config & set up tests', function(){
+    tests.forEach(function(test) {
+      it('should throw an error for invalid ' + test.field + ' ' + test.reason, function(done) {
+        var optionsToConfigure = {};
+        optionsToConfigure[test.field] = test.wrongValue;
+        nev.configure(optionsToConfigure, function(err, options) {
+          should.exist(err);
+          should.not.exist(options);
+          done();
+        });
+      });
+    });
 
-  it('Tests the option object', function(){
-    assert.typeOf(nev.options.URLLength, 'number', 'URL Length must be a number');
-    assert.typeOf(nev.options.expirationTime, 'number', 'Expiration time must be a number');
-    assert.typeOf(nev.options.verificationURL, 'string', 'URL for verification must be a string');
+    after(function(done) {
+      var newOptions = JSON.parse(JSON.stringify(defaultOptions));
+      newOptions.tempUserModel = tempUserModel;
+      newOptions.transportOptions = stubTransport();
+      newOptions.persistentUserModel = user;
+      newOptions.passwordFieldName = 'pw';
+      nev.configure(newOptions, done);
+    });
   });
 
 });
 
-describe('db tests', function(){
+describe('MongoDB tests', function() {
 
-  before(function(done){
+  var newUser, newUserURL;
+
+  before(function(done) {
     newUser = new user({
       email: 'foobar@fizzbuzz.com',
       pw: 'pass'
     });
 
-    newUser.save(function (err) {
-      should.not.exist(err);
-      done();
-    });
+    done();
   });
 
-  it('should send an email without any errors (sendVerificationEmail())', function(done){
-    nev.sendVerificationEmail('foobar@fizzbuzz.com','foo', function (err, info) {
+  it('should create a temporary user (createTempUser())', function(done) {
+    nev.createTempUser(newUser, function(err, newTempUser) {
       should.not.exist(err);
-      should.exist(info);
+      should.exist(newTempUser);
 
-      // console.log(info.response.toString());
-      done();
-    });
-  });
-
-  it('should create a temporary user without any errors (createTempUser())', function(done){
-
-    nev.createTempUser(newUser, function(newTempUser) {
-
-      // new user created
-      if (newTempUser) {
-        nev.registerTempUser(newTempUser);
-      }
-
-      nev.options.tempUserModel.findOne({ email : newUser.email }).exec( function(err, result){
+      nev.options.tempUserModel.findOne({
+        email: newUser.email
+      }).exec(function(err, result) {
         should.not.exist(err);
         should.exist(result);
 
         result.should.have.property('email').with.length(newUser.email.length);
-        result.should.have.property('pw').with.length(60);
+        result.should.have.property('pw').with.length(4);
+        newUserURL = result.GENERATED_VERIFYING_URL;
 
         done();
       });
@@ -69,30 +98,26 @@ describe('db tests', function(){
     });
   });
 
-  it('should confirm a temp user without any errors (sendVerificationEmail())', function(done){
-    nev.createTempUser(newUser, function(newTempUser) {
-      // console.log(newTempUser);
+  it('should put the temporary user into the persistent collection (confirmTempUser())', function(done) {
+    nev.confirmTempUser(newUserURL, function(err, newUser) {
+      should.not.exist(err);
+      should.exist(newUser);
 
-      if (newTempUser) {
-        nev.registerTempUser(newTempUser);
-      }
-
-      nev.sendConfirmationEmail(newTempUser.email, function(err, info){
+      user.findOne({
+        email: newUser.email
+      }).exec(function(err, result) {
         should.not.exist(err);
-        should.exist(info);
+        should.exist(result);
 
-        console.log(info.response.toString());
+        result.should.have.property('email').with.length(newUser.email.length);
+        result.should.have.property('pw').with.length(4);
+
         done();
       });
     });
-  });
-
-  afterEach(function(done) {
-    nev.options.tempUserModel.remove().exec(done);
   });
 
   after(function(done) {
     user.remove().exec(done);
   });
-
 });
