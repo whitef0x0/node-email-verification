@@ -250,7 +250,7 @@ var options = {
                 'paste the following link into your browser:</p><p>${URL}</p>',
         text: 'Please verify your account by clicking the following link, or by copying and pasting it into your browser: ${URL}'
     },
-    sendConfirmationEmail: true,
+    shouldSendConfirmation: true,
     confirmMailOptions: {
         from: 'Do Not Reply <user@gmail.com>',
         subject: 'Successfully verified!',
@@ -275,7 +275,7 @@ var options = {
 
 - **transportOptions**: the options that will be passed to `nodemailer.createTransport`.
 - **verifyMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email for verification. You must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
-- **sendConfirmationEmail**: send an email upon the user verifiying their account to notify them of verification.
+- **shouldSendConfirmation**: send an email upon the user verifiying their account to notify them of verification.
 - **confirmMailOptions**: the options that will be passed to `nodemailer.createTransport({...}).sendMail` when sending an email to notify the user that their account has been verified. You must include `${URL}` somewhere in the `html` and/or `text` fields to put the URL in these strings.
 
 - **hashingFunction**: the function that hashes passwords. Must take four parameters `password, tempUserData, insertTempUser, callback` and return `insertTempUser(hash, tempUserData, callback)`.
