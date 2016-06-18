@@ -1,6 +1,7 @@
 'use strict';
 
 var randtoken = require('rand-token'),
+  async = require('async'),
   nodemailer = require('nodemailer');
 
 module.exports = function(mongoose) {
@@ -68,6 +69,13 @@ module.exports = function(mongoose) {
         'paste the following link into your browser:</p><p>${URL}</p>',
       text: 'Please verify your account by clicking the following link, or by copying and pasting it into your browser: ${URL}'
     },
+    verifySendMailCallback: function(err, info) {
+      if (err) {
+        throw err;
+      } else {
+        console.log(info.response);
+      }
+    },
     shouldSendConfirmation: true,
     confirmMailOptions: {
       from: 'Do Not Reply <user@gmail.com>',
@@ -75,7 +83,13 @@ module.exports = function(mongoose) {
       html: '<p>Your account has been successfully verified.</p>',
       text: 'Your account has been successfully verified.'
     },
-
+    confirmSendMailCallback: function(err, info) {
+      if (err) {
+        throw err;
+      } else {
+        console.log(info.response);
+      }
+    },
     hashingFunction: null,
   };
 
@@ -289,6 +303,9 @@ module.exports = function(mongoose) {
     mailOptions.html = mailOptions.html.replace(r, URL);
     mailOptions.text = mailOptions.text.replace(r, URL);
 
+    if (!callback) {
+      callback = options.verifySendMailCallback;
+    }
     transporter.sendMail(mailOptions, callback);
   };
 
@@ -302,7 +319,49 @@ module.exports = function(mongoose) {
   var sendConfirmationEmail = function(email, callback) {
     var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
     mailOptions.to = email;
-    transporter.sendMail(mailOptions, callback);
+    if (options.shouldSendConfirmation) {
+			if (!callback) {
+				callback = options.shouldSendConfirmation;
+			}
+			transporter.sendMail(mailOptions, callback);
+		}
+	};
+
+
+  /**
+   * Save the user to the temporary collection, and send an email to the user
+   * requesting verification.
+   *
+   * @func registerTempUser
+   * @param {object} newTempUser - an instance of the temporary user model
+   */
+  var registerTempUser = function(newTempUser, cb) {
+    // var r = /\$\{URL\}/g;
+
+    async.waterfall([
+      function(callback) {
+        newTempUser.save(function(err, tempUser) {
+          if (err) {
+            return callback(err);
+          }
+          return callback();
+        });
+      },
+      function(callback) {
+        try {
+          sendVerificationEmail(getNestedValue(newTempUser, options.emailFieldName), newTempUser[options.URLFieldName]);
+        } catch (err) {
+          return callback(err);
+        }
+        return callback();
+      },
+    ], function(err, result) {
+      if (err) {
+        return cb(err);
+      } else {
+        return cb();
+      }
+    });
   };
 
 
@@ -343,7 +402,10 @@ module.exports = function(mongoose) {
               return callback(err, null);
             }
 
-            return callback(null, savedUser);
+            if (options.shouldSendConfirmation) {
+              sendConfirmationEmail(savedUser.email, null);
+            }
+            return callback(null, user);
           });
         });
 
