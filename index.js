@@ -11,7 +11,7 @@ module.exports = function(mongoose) {
   };
 
   var createOptionError = function(optionName, optionValue, expectedType) {
-    return new TypeError('Expected ' + optionName + ' to be a ' + expectedType + ', got ' + 
+    return new TypeError('Expected ' + optionName + ' to be a ' + expectedType + ', got ' +
       typeof optionValue);
   };
 
@@ -320,12 +320,12 @@ module.exports = function(mongoose) {
     var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
     mailOptions.to = email;
     if (options.shouldSendConfirmation) {
-			if (!callback) {
-				callback = options.shouldSendConfirmation;
-			}
-			transporter.sendMail(mailOptions, callback);
-		}
-	};
+      if (!callback) {
+        callback = options.shouldSendConfirmation;
+      }
+      transporter.sendMail(mailOptions, callback);
+    }
+  };
 
 
   /**
