@@ -319,9 +319,9 @@ module.exports = function(mongoose) {
   var sendConfirmationEmail = function(email, callback) {
     var mailOptions = JSON.parse(JSON.stringify(options.confirmMailOptions));
     mailOptions.to = email;
-    if(shouldSendConfirmation){
+    if (shouldSendConfirmation) {
 			if (!callback) {
-				callback = options.confirmSendMailCallback;
+				callback = options.shouldSendConfirmation;
 			}
 			transporter.sendMail(mailOptions, callback);
 		}
