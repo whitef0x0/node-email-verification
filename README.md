@@ -1,7 +1,5 @@
 # node email verification
 
-**Note**: This library is no longer being maintained. If you're interested in maintaining it, send me a message. However, I would just recommend looking into using JWT for sending emails with verification links in them instead - it's really not that hard.
-
 
 [![NPM](https://nodei.co/npm/email-verification.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/email-verification/)
 
