@@ -7,6 +7,15 @@ var express = require('express'),
   nev = Promise.promisifyAll(require('../../index')(mongoose));
 mongoose.connect('mongodb://localhost/YOUR_DB');
 
+function PromiseError(message) {
+  this.name = 'PromiseError';
+  this.message = message;
+  this.stack = (new Error()).stack;
+}
+PromiseError.prototype = Object.create(Error.prototype);
+PromiseError.prototype.constructor = PromiseError;
+
+
 // our persistent user model
 var User = require('./app/userModel');
 
@@ -75,7 +84,19 @@ app.post('/', function(req, res) {
     });
 
     nev.createTempUserAsync(newUser)
-    .then(function(newTempUser) {
+    .then(function(data) {
+      
+      var existingPersistentUser = data[0],
+        newTempUser = data[1];
+
+      // user already exists in persistent collection
+      if (existingPersistentUser) {
+        res.json({
+          msg: 'You have already signed up and confirmed your account. Did you forget your password?'
+        });
+        throw new PromiseError('User already exists in persistent collection.');
+      }
+
       if (newTempUser) {
         var URL = newTempUser[nev.options.URLFieldName];
         return nev.sendVerificationEmailAsync(email, URL);
@@ -85,6 +106,7 @@ app.post('/', function(req, res) {
         res.json({
           msg: 'You have already signed up. Please check your email to verify your account.'
         });
+        throw new PromiseError('User already exists in temporary collection.');
       }
     })
     .then(function(info) {
@@ -93,15 +115,24 @@ app.post('/', function(req, res) {
         info: info
       });
     })
-    .catch(function() {
-      return res.status(404).send('FAILED');
+    .catch(function(err) {
+      if (err.name !== 'PromiseError') {
+        return res.status(404).send('FAILED');
+      }
     });
 
   // resend verification button was clicked
   } else {
     nev.resendVerificationEmailAsync(email)
-    .then(function(userFound) {
-      if (userFound) {
+    .then(function(data) {
+      var persistentUserFound = data[0],
+        tempUserFound = data[1];
+
+      if (persistentUserFound) {
+        res.json({
+          msg: 'You have already signed up and confirmed your account. Did you forget your password?'
+        });
+      } else if (tempUserFound) {
         res.json({
           msg: 'An email has been sent to you, yet again. Please check it to verify your account.'
         });
@@ -125,9 +156,12 @@ app.get('/email-verification/:URL', function(req, res) {
   nev.confirmTempUserAsync(url)
   .then(function(user) {
     if (user) {
-      nev.sendConfirmationEmailAsync(user.email);
+      return nev.sendConfirmationEmailAsync(user.email);
     } else {
-      res.status(404).send('ERROR: confriming temp user FAILED');
+      res.json({
+        msg: 'Couldn\'t confirm user. Perhaps your code expired?'
+      });
+      throw new PromiseError('User could not be confirmed.')
     }
   })
   .then(function(info) {
@@ -136,8 +170,10 @@ app.get('/email-verification/:URL', function(req, res) {
       info: info
     });
   })
-  .catch(function() {
-    res.status(404).send('FAILED');
+  .catch(function(err) {
+    if (err.name !== 'PromiseError') {
+      res.status(404).send('FAILED');
+    }
   });
 });
 
