@@ -1,10 +1,14 @@
 ![logo](https://github.com/whitef0x0/node-email-verification/raw/master/design/logo.png "node email verification")
 # Node Email Verification
 
+[![Build Status](https://travis-ci.org/whitef0x0/email-verification.svg?branch=master)](https://travis-ci.org/whitef0x0/node-email-verification)
+[![Code Climate](https://codeclimate.com/github/whitef0x0/node-email-verification/badges/gpa.svg)](https://codeclimate.com/github/whitef0x0/node-email-verification)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/dad0c103e43e4ac79a118ea5bd0537dd)](https://www.codacy.com/app/david-baldwin/node-email-verification?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=whitef0x0/node-email-verification&amp;utm_campaign=Badge_Grade)
+[![Gitter](https://badges.gitter.im/whitef0x0/node-email-verification.svg)](https://gitter.im/whitef0x0/node-email-verification?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 [![NPM](https://nodei.co/npm/email-verification.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/email-verification/)
 
-Verify user signup with Node and MongoDB!
+Verify user signup over email with NodeJS and MongoDB!
 
 The way this works is as follows:
 

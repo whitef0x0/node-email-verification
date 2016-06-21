@@ -1,11 +1,7 @@
 language: node_js
-
 node_js:
-  - "4.1.0"
-
+  - "6"
+  - "6.1"
+  - "5.11"
 services:
   - mongodb
-
-notifications:
-  email:
-    - d.h.stlaurent@gmail.com
