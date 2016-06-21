@@ -46,8 +46,8 @@
     "chai": "*",
     "express": "^4.10.4",
     "js-beautify": "^1.5.10",
-    "jshint": "^2.8.0",
-    "jshint-stylish": "^2.0.1",
+    "jshint": "*",
+    "jshint-stylish": "*",
     "mocha": "*",
     "nodemailer-stub-transport": "^1.0.0",
     "bluebird": "*"
