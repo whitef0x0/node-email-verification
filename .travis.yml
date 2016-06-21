@@ -5,7 +5,3 @@ node_js:
 
 services:
   - mongodb
-
-notifications:
-  email:
-    - polydaic@gmail.com
