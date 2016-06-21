@@ -78,9 +78,16 @@ app.post('/', function(req, res) {
       pw: pw
     });
 
-    nev.createTempUser(newUser, function(err, newTempUser) {
+    nev.createTempUser(newUser, function(err, existingPersistentUser, newTempUser) {
       if (err) {
         return res.status(404).send('ERROR: creating temp user FAILED');
+      }
+
+      // user already exists in persistent collection
+      if (existingPersistentUser) {
+        return res.json({
+          msg: 'You have already signed up and confirmed your account. Did you forget your password?'
+        });
       }
 
       // new user created

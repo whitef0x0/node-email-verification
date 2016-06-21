@@ -81,7 +81,7 @@ nev.configure({
 });
 ```
 
-Then, create an instance of the User model, and then pass it as well as a custom callback to `createTempUser`. The callback should take two parameters: an error if any occured, and one for the new temporary user that's created. If the user already exists in the temporary *or* permanent collection, or if there are any errors, then this parameter will be `null`.
+Then, create an instance of the User model, and then pass it as well as a custom callback to `createTempUser`. The callback should take three parameters: an error if any occured, an instance of the persistent user if the user already exists in the persistent collection (`null` otherwise), and the new temporary user that's created. If the user already exists in the temporary collection or persistent collection, or if there are any errors, then this last parameter will be `null`.
 
 Inside the `createTempUser` callback, make a call to the `sendVerificationEmail` function, which takes three parameters: the user's email, the URL assigned to the user, and a callback. This callback takes two parameters: an error if any occured, and the information returned by Nodemailer.
 
@@ -95,10 +95,14 @@ var newUser = User({
     password: password
 });
 
-nev.createTempUser(newUser, function(err, newTempUser) {
+nev.createTempUser(newUser, function(err, existingPersistentUser, newTempUser) {
     // some sort of error
     if (err)
         // handle error...
+
+    // user already exists in persistent collection...
+    if (existingPersistentUser)
+        // handle user's existence... violently.
 
     // a new user
     if (newTempUser) {
@@ -110,7 +114,7 @@ nev.createTempUser(newUser, function(err, newTempUser) {
             // flash message of success
         });
 
-    // user already exists in our temporary OR permanent collection
+    // user already exists in temporary collection...
     } else {
         // flash message of failure...
     }

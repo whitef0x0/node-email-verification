@@ -78,8 +78,9 @@ describe('MongoDB tests', function() {
   });
 
   it('should create a temporary user (createTempUser())', function(done) {
-    nev.createTempUser(newUser, function(err, newTempUser) {
+    nev.createTempUser(newUser, function(err, existingPersistentUser, newTempUser) {
       should.not.exist(err);
+      should.not.exist(existingPersistentUser);
       should.exist(newTempUser);
 
       nev.options.tempUserModel.findOne({
@@ -94,7 +95,6 @@ describe('MongoDB tests', function() {
 
         done();
       });
-
     });
   });
 
