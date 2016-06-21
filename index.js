@@ -241,7 +241,23 @@ module.exports = function(mongoose) {
 
     // create our mongoose query
     var query = {};
-    query[options.emailFieldName] = user[options.emailFieldName];
+
+    if(options.emailFieldName.split('.').length > 1){
+      var levels = options.emailFieldName.split('.');
+      query[levels[0]] = {};
+
+      var queryObj = query[levels[0]];
+      var userObj = user[levels[0]];
+      for(var i=0; i<levels.length; i++){
+        queryObj[levels[i+1]] = {};
+        queryObj = queryObj[levels[i+1]];
+        userObj = userObj[levels[i+1]];
+      }
+
+      queryObj = userObj;
+    }else {
+      query[options.emailFieldName] = user[options.emailFieldName];
+    }
 
     options.persistentUserModel.findOne(query, function(err, existingPersistentUser) {
       if (err) {

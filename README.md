@@ -1,4 +1,5 @@
-# node email verification
+![logo](https://github.com/whitef0x0/node-email-verification/raw/master/design/logo.png "node email verification")
+# Node Email Verification
 
 
 [![NPM](https://nodei.co/npm/email-verification.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/email-verification/)
