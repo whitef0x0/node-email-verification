@@ -311,7 +311,7 @@ var options = {
 
 - **hashingFunction**: the function that hashes passwords. Must take four parameters `password, tempUserData, insertTempUser, callback` and return `insertTempUser(hash, tempUserData, callback)`.
 
-### Developer-Related Stuff
+### Development
 To beautify the code:
 
 ```
