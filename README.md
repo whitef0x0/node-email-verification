@@ -1,4 +1,4 @@
-# ![logo](https://github.com/whitef0x0/node-email-verification/raw/master/design/logo.png =100x20 "node email verification") Node Email Verification
+# <img src="https://github.com/whitef0x0/node-email-verification/raw/master/design/logo.png" data-canonical-src="https://github.com/whitef0x0/node-email-verification/raw/master/design/logo.png" width="48"/> Node Email Verification
 
 [![Build Status](https://travis-ci.org/whitef0x0/email-verification.svg?branch=master)](https://travis-ci.org/whitef0x0/node-email-verification)
 [![Code Climate](https://codeclimate.com/github/whitef0x0/node-email-verification/badges/gpa.svg)](https://codeclimate.com/github/whitef0x0/node-email-verification)
