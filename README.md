@@ -336,13 +336,9 @@ To test:
 npm test
 ```
 
-### TODO
-- **development**: add a task runner WE NEED TESTS
-- **development**: throw more errors
-- *nice to have*: working examples with Sails and HapiJS (maybe Koa and Total as well?)
-
 ### Acknowledgements
-thanks to [Frank Cash](https://github.com/frankcash) for looking over my code.
+thanks to [Dakota St. Lauren](https://github.com/frankcash) for starting this project
+thanks to [Frank Cash](https://github.com/frankcash) for looking over the code and adding tests.
 
 ### license
 ISC
