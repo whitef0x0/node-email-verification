@@ -67,6 +67,7 @@ nev.configure({
         html: 'Click the following link to confirm your account:</p><p>${URL}</p>',
         text: 'Please confirm your account by clicking the following link: ${URL}'
     }
+}, function(error, options){
 });
 ```
 
@@ -85,6 +86,7 @@ nev.generateTempUserModel(User);
 var TempUser = require('./app/tempUserModel');
 nev.configure({
     tempUserModel: TempUser
+}, function(error, options){
 });
 ```
 
