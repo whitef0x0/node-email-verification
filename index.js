@@ -24,9 +24,7 @@ module.exports = function(mongoose) {
    * @param {string} def - default value to return if not found
    */
   var getNestedValue = function(obj, path, def) {
-    var i, len;
-
-    for (i = 0, path = path.split('.'), len = path.length; i < len; i++) {
+    for (let i = 0, path = path.split('.'), len = path.length; i < len; i++) {
       if (!obj || typeof obj !== 'object') {
         return def;
       }
@@ -103,7 +101,7 @@ module.exports = function(mongoose) {
    * @param {object} o - options to be changed
    */
   var configure = function(optionsToConfigure, callback) {
-    for (var key in optionsToConfigure) {
+    for (let key in optionsToConfigure) {
       if (optionsToConfigure.hasOwnProperty(key)) {
         options[key] = optionsToConfigure[key];
       }
@@ -352,7 +350,6 @@ module.exports = function(mongoose) {
    * @param {object} newTempUser - an instance of the temporary user model
    */
   var registerTempUser = function(newTempUser, cb) {
-    // var r = /\$\{URL\}/g;
 
     async.waterfall([
       function(callback) {
