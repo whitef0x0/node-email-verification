@@ -341,43 +341,6 @@ module.exports = function(mongoose) {
     }
   };
 
-
-  /**
-   * Save the user to the temporary collection, and send an email to the user
-   * requesting verification.
-   *
-   * @func registerTempUser
-   * @param {object} newTempUser - an instance of the temporary user model
-   */
-  var registerTempUser = function(newTempUser, cb) {
-
-    async.waterfall([
-      function(callback) {
-        newTempUser.save(function(err, tempUser) {
-          if (err) {
-            return callback(err);
-          }
-          return callback();
-        });
-      },
-      function(callback) {
-        try {
-          sendVerificationEmail(getNestedValue(newTempUser, options.emailFieldName), newTempUser[options.URLFieldName]);
-        } catch (err) {
-          return callback(err);
-        }
-        return callback();
-      },
-    ], function(err, result) {
-      if (err) {
-        return cb(err);
-      } else {
-        return cb();
-      }
-    });
-  };
-
-
   /**
    * Transfer a temporary user from the temporary collection to the persistent
    * user collection, removing the URL assigned to it.
