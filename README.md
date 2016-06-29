@@ -7,6 +7,8 @@
 
 [![NPM](https://nodei.co/npm/email-verification.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/email-verification/)
 
+[See documentation and setup here](http://whitef0x0.github.io/node-email-verification)
+
 Verify user signup over email with NodeJS and MongoDB!
 
 The way this works is as follows:
