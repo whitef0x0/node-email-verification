@@ -19,7 +19,6 @@
 .container .big.column   { width: 620px; }
 .container .full.column  { width: 940px; }
 
-
 /* ----- Tablet (Portrait) -- 768px ----- */
   @media only screen and (min-width: 768px) and (max-width: 959px) {
     .container               { width: 768px; }
@@ -37,7 +36,8 @@
     .container .column        { margin:  1%; }
 
     .container .small.column { width: 48%; }
-    .container .half.column  { width: 48%; }
+
+    .container .half.column  { width: 96%; }
     .container .big.column   { width: 98%; }
     .container .full.column  { width: 98%; }
   }
@@ -89,3 +89,30 @@
     width: 0;
     height: 0;
   }
+
+
+.round-image {
+ float: right;
+ padding-bottom: 150px;
+ width: 150px;
+ height: 150px;
+ background-image: url('img/me.png');
+ background-size: cover;
+ display: block;
+ border-radius: 50%;
+ -webkit-border-radius: 100px;
+ -moz-border-radius: 100px;
+ box-shadow:0 0 20px rgba(70, 67, 58, 1);
+ -webkit-box-shadow: 0 0 20px rgba(70, 67, 58, 1);
+ -moz-box-shadow: 0 0 20px rgba(70, 67, 58, 1);
+ #background-position: right top;
+ #background-attachment: fixed;
+}
+
+
+.footer-image{
+	background: url(img/portjeff.jpg);
+	background-size: cover;
+	background-position: center;
+	color: white;
+}
