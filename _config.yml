@@ -7,23 +7,6 @@ safe: false
 
 ### site serving configuration ###
 exclude: [CNAME, README.md, .gitignore]
-<<<<<<< HEAD
-permalink: / ## disables post output
-timezone: null
-lsi: false
-markdown: kramdown
-highlighter: pygments
-
-
-### content configuration ###
-title:       "SinglePaged - Simple Jekyll template"
-keywords:    "SinglePaged, jekyll, template, github, blog, single page"
-description: "A single-page template for Jekyll based blogs (like what you'd use on github pages!)"
-source_link: "https://github.com/t413/SinglePaged"
-favicon:     "img/favicon.ico"
-touch_icon:  "img/apple-touch-icon.png"
-google_analytics_key: UA-49607422-1 ## put YOUR key here to enable tracking! (blank to disable)
-=======
 permalink: /:day ## disables post output
 timezone: null
 lsi: false
@@ -32,36 +15,25 @@ highlighter: rouge
 
 
 ### content configuration ###
-title:       "Avi Srivastava"
-keywords:    "Avi, computational biology, genomics, transcriptomics"
-description: "Persomal Page of Avi Srivastava"
-source_link: "https://github.com/keyavi/keyavi.github.io"
+title:       "Node Email Verification"
+keywords:    "nodejs, email verify, mongodb, email verification, expressjs"
+description: "Node-Email-Verification Page"
+source_link: "https://github.com/whitef0x0/email-verification"
 favicon:     "img/favicon.ico" #put a path like: "img/favicon.ico"
 touch_icon:  "img/apple.png" #put a path like: "img/apple-touch-icon.png"
 google_analytics_key: ## put YOUR key here to enable tracking! (blank to disable)
->>>>>>> 441ea7b5b18574f85c5b84742800eb34700be7c3
 
 
 ### template colors, used site-wide via css ###
 colors:
   black:     '#111111'
-<<<<<<< HEAD
-  white:     '#f8f8f8'
-=======
-  white:     '#f1eed9'
->>>>>>> 441ea7b5b18574f85c5b84742800eb34700be7c3
+  white:     '#ffffff'
   blue:      '#49a7e9'
   green:     '#9bcf2f'
   purple:    '#c869bf'
   orange:    '#fab125'
   turquoise: '#0fbfcf'
-<<<<<<< HEAD
-
-kramdown:
-  auto_ids:  false
-=======
   textbg:    '#46433A'
   garnet:    '#782F40'
   gold:      '#CEB888'
->>>>>>> 441ea7b5b18574f85c5b84742800eb34700be7c3
 
