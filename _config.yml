@@ -16,8 +16,8 @@ highlighter: rouge
 
 ### content configuration ###
 title:       "Node Email Verification"
-keywords:    "nodejs, email verify, mongodb, email verification, expressjs"
-description: "Node-Email-Verification Page"
+keywords:    "nodejs, node email verify, meanjs, node email, user email verification, mongodb, email verification, node email verification, node-email-verification"
+description: "Node Email Verification is an npm module that allows you to easily add user email verification to your MEANjs web app using mongodb, expressjs and nodejs"
 source_link: "https://github.com/whitef0x0/email-verification"
 favicon:     "img/favicon.ico" #put a path like: "img/favicon.ico"
 touch_icon:  "img/apple.png" #put a path like: "img/apple-touch-icon.png"
