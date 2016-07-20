@@ -335,7 +335,7 @@ module.exports = function(mongoose) {
     mailOptions.to = email;
     if (options.shouldSendConfirmation) {
       if (!callback) {
-        callback = options.shouldSendConfirmation;
+        callback = options.confirmSendMailCallback;
       }
       transporter.sendMail(mailOptions, callback);
     }
