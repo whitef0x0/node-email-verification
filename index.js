@@ -1,7 +1,6 @@
 'use strict';
 
 var randtoken = require('rand-token'),
-  async = require('async'),
   nodemailer = require('nodemailer');
 
 module.exports = function(mongoose) {
@@ -24,7 +23,8 @@ module.exports = function(mongoose) {
    * @param {string} def - default value to return if not found
    */
   var getNestedValue = function(obj, path, def) {
-    for (let i = 0, path = path.split('.'), len = path.length; i < len; i++) {
+    path = path.split('.');
+    for (let i = 0, len = path.length; i < len; i++) {
       if (!obj || typeof obj !== 'object') {
         return def;
       }
