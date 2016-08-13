@@ -151,10 +151,12 @@ myHasher = function(password, tempUserData, insertTempUser, callback) {
 };
 ```
 
-###Step 5: Confirm your user and save your user to persistent storage 
+###Step 5: Confirm your user and save your user to persistent storage
 To move a user from the temporary storage to 'persistent' storage (e.g. when they actually access the URL we sent them), we call `confirmTempUser`, which takes the URL as well as a callback with two parameters: an error, and the instance of the User model (or `null` if there are any errors, or if the user wasn't found - i.e. their data expired).
 
-If you want to send a confirmation email, then inside the `confirmTempUser` callback,  make a call to the `sendConfirmationEmail` function, which takes two parameters: the user's email and a callback. This callback takes two parameters: an error if any occured, and the information returned by Nodemailer.
+If you want to send a confirmation email, note that in your options the `shouldSendConfirmation` default value is true, which means that on calling `confirmTempUser` you will automatically send a confirmation e-mail. Creating a call to `sendConfirmationEmail` will end up sending two confirmation e-mails to the user. In your configurations, you should either have `shouldSendConfirmation` equal true or use `sendConfirmationEmail`.
+
+If `shouldSendConfirmation` is false and you want to send a confirmation email, you need to make a call to the `sendConfirmationEmail` function, inside the `confirmTempUser` callback, which takes two parameters: the user's email and a callback. This callback takes two parameters: an error if any occured, and the information returned by Nodemailer.
 
 ```javascript
 var url = '...';
