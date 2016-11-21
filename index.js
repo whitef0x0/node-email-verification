@@ -377,7 +377,7 @@ module.exports = function(mongoose) {
             }
 
             if (options.shouldSendConfirmation) {
-              sendConfirmationEmail(savedUser.email, null);
+              sendConfirmationEmail(savedUser[options.emailFieldName], null);
             }
             return callback(null, user);
           });
