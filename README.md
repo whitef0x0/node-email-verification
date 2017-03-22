@@ -37,7 +37,7 @@ node_modules/
 server.js
 ```
 
-###Step 1: Add your dependencies
+### Step 1: Add your dependencies
 All of the code in this section takes place in server.js. Note that `mongoose` has to be passed as an argument when requiring the module:
 
 ```javascript
@@ -47,7 +47,7 @@ var User = require('./app/userModel'),
 mongoose.connect('mongodb://localhost/YOUR_DB');
 ```
 
-###Step 2: Configure your settings
+### Step 2: Configure your settings
 Next, make sure to configure the options (see the section below for more extensive detail on this):
 
 ```javascript
@@ -75,7 +75,7 @@ nev.configure({
 
 Note: Any options not included in the object you pass will take on the default value specified in the section below. Calling `configure` multiple times with new options will simply change the previously defined options.
 
-###Step 3: Create a Temporary user Model
+### Step 3: Create a Temporary user Model
 To create a temporary user model, you can either generate it using a built-in function, or you can predefine it in a separate file. If you are pre-defining it, it must be IDENTICAL to the user model with an extra field for the URL; the default one is `GENERATED_VERIFYING_URL: String`.
 
 ```javascript
@@ -92,7 +92,7 @@ nev.configure({
 });
 ```
 
-###Step 4: Create a TempUser Model in your Signup Handler
+### Step 4: Create a TempUser Model in your Signup Handler
 Then, create an instance of the User model, and then pass it as well as a custom callback to `createTempUser`. Inside your `createTempUser` callback, make a call to the `sendVerificationEmail` function.
 
 ```javascript
@@ -131,7 +131,7 @@ nev.createTempUser(newUser, function(err, existingPersistentUser, newTempUser) {
 });
 ```
 
-###Step 4.5: Hash your users password
+### Step 4.5: Hash your users password
 Note: An email will be sent to the email address that the user signed up with. If you are interested in hashing the password (which you probably should be), all you need to do is set the option `hashingFunction` to a function that takes the parameters `password, tempUserData, insertTempUser, callback` and returns `insertTempUser(hash, tempUserData, callback)`, e.g.:
 
 ```javascript
@@ -151,7 +151,7 @@ myHasher = function(password, tempUserData, insertTempUser, callback) {
 };
 ```
 
-###Step 5: Confirm your user and save your user to persistent storage
+### Step 5: Confirm your user and save your user to persistent storage
 To move a user from the temporary storage to 'persistent' storage (e.g. when they actually access the URL we sent them), we call `confirmTempUser`, which takes the URL as well as a callback with two parameters: an error, and the instance of the User model (or `null` if there are any errors, or if the user wasn't found - i.e. their data expired).
 
 If you want to send a confirmation email, note that in your options the `shouldSendConfirmation` default value is true, which means that on calling `confirmTempUser` you will automatically send a confirmation e-mail. Creating a call to `sendConfirmationEmail` will end up sending two confirmation e-mails to the user. In your configurations, you should either have `shouldSendConfirmation` equal true or use `sendConfirmationEmail`.
@@ -178,7 +178,7 @@ nev.confirmTempUser(url, function(err, user) {
 });
 ```
 
-###Step 5.5: Allow user to resend verification email
+### Step 5.5: Allow user to resend verification email
 If you want the user to be able to request another verification email, simply call `resendVerificationEmail`, which takes the user's email address and a callback with two parameters: an error, and a boolean representing whether or not the user was found.
 
 ```javascript
@@ -343,7 +343,7 @@ npm test
 ```
 
 ### Acknowledgements
-thanks to [Dakota St. Lauren](https://github.com/frankcash) for starting this project
+thanks to [Dakota St. Lauren](https://github.com/SaintDako) for starting this project
 thanks to [Frank Cash](https://github.com/frankcash) for looking over the code and adding tests.
 
 ### license
