@@ -85,7 +85,7 @@ app.post('/', function(req, res) {
 
     nev.createTempUserAsync(newUser)
     .then(function(data) {
-      
+
       var existingPersistentUser = data[0],
         newTempUser = data[1];
 
@@ -154,7 +154,7 @@ app.get('/email-verification/:URL', function(req, res) {
       res.json({
         msg: 'Couldn\'t confirm user. Perhaps your code expired?'
       });
-      throw new PromiseError('User could not be confirmed.')
+      throw new PromiseError('User could not be confirmed.');
     }
   })
   .then(function(info) {
