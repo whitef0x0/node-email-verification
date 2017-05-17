@@ -48,7 +48,7 @@
     "rand-token": "^0.2.1"
   },
   "devDependencies": {
-    "async": "^1.4.2",
+    "async": "^2.4.0",
     "bcryptjs": "^2.3.0",
     "body-parser": "^1.9.3",
     "chai": "*",
