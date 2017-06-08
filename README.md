@@ -82,7 +82,14 @@ To create a temporary user model, you can either generate it using a built-in fu
 // configuration options go here...
 
 // generating the model, pass the User model defined earlier
-nev.generateTempUserModel(User);
+nev.generateTempUserModel(User, function(err, tempUserModel) {
+  if (err) {
+    console.log(err);
+    return;
+  }
+
+  console.log('generated temp user model: ' + (typeof tempUserModel === 'function'));
+});
 
 // using a predefined file
 var TempUser = require('./app/tempUserModel');
