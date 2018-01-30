@@ -279,7 +279,7 @@ module.exports = function(mongoose) {
                     var tempUserData = {};
 
                     // copy the credentials for the user
-                    Object.keys(user._doc).forEach(function(field) {
+                    Object.keys(user).forEach(function(field) {
                         tempUserData[field] = user[field];
                     });
 
