@@ -25,19 +25,66 @@ describe('config & set up tests', function() {
     });
 
 
-    var tests = [
-      {field: 'verificationURL', wrongValue: 100, reason: 'type'},
-      {field: 'verificationURL', wrongValue: 'someurl', reason: 'value'},
-      {field: 'URLLength', wrongValue: 'str', reason: 'type'},
-      {field: 'URLLength', wrongValue: -20, reason: 'value'},
-      {field: 'URLLength', wrongValue: 5.5, reason: 'value'},
-      {field: 'tempUserCollection', wrongValue: null, reason: 'type'},
-      {field: 'emailFieldName', wrongValue: [], reason: 'type'},
-      {field: 'passwordFieldName', wrongValue: {}, reason: 'type'},
-      {field: 'URLFieldName', wrongValue: 5.5, reason: 'type'},
-      {field: 'expirationTime', wrongValue: '100', reason: 'type'},
-      {field: 'expirationTime', wrongValue: -42, reason: 'value'},
-      {field: 'expirationTime', wrongValue: 4.2, reason: 'value'},
+    var tests = [{
+        field: 'verificationURL',
+        wrongValue: 100,
+        reason: 'type'
+      },
+      {
+        field: 'verificationURL',
+        wrongValue: 'someurl',
+        reason: 'value'
+      },
+      {
+        field: 'URLLength',
+        wrongValue: 'str',
+        reason: 'type'
+      },
+      {
+        field: 'URLLength',
+        wrongValue: -20,
+        reason: 'value'
+      },
+      {
+        field: 'URLLength',
+        wrongValue: 5.5,
+        reason: 'value'
+      },
+      {
+        field: 'tempUserCollection',
+        wrongValue: null,
+        reason: 'type'
+      },
+      {
+        field: 'emailFieldName',
+        wrongValue: [],
+        reason: 'type'
+      },
+      {
+        field: 'passwordFieldName',
+        wrongValue: {},
+        reason: 'type'
+      },
+      {
+        field: 'URLFieldName',
+        wrongValue: 5.5,
+        reason: 'type'
+      },
+      {
+        field: 'expirationTime',
+        wrongValue: '100',
+        reason: 'type'
+      },
+      {
+        field: 'expirationTime',
+        wrongValue: -42,
+        reason: 'value'
+      },
+      {
+        field: 'expirationTime',
+        wrongValue: 4.2,
+        reason: 'value'
+      },
     ];
 
     tests.forEach(function(test) {

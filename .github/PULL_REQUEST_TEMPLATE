@@ -1,15 +1,14 @@
 <!-- Fill out this template to explain your pull request. -->
 
 #### What's in this pull request?
-<!-- Provide a one or two sentence brief description of your PR here. -->
+# Fixed confirmTempUser() function to copy all the properties
+# of the tempUserData variable to userData.
 
 #### Bugs Squashed
-<!-- If your PR fixes an issue, list the issue number here.-->
-Resolves issue #x.
-<!-- While not requried, you can choose to provide a brief description of how you fixed the bugs here. -->
+Resolves issue #68.
 
 #### Changes proposed
-<!-- Describe the changes you've made so it's easier for the team to review. -->
--
--
--
+- Used updated version of nodemailer to ^4.0.1.
+- Changed TempUser.findOne() query in the confirmTempUser() function in index.js, 
+- the previous line has been commented out and added another one after variable declaration
+- in if(tempUserData) statement.
