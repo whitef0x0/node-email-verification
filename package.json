@@ -43,7 +43,7 @@
   },
   "homepage": "http://email-verification.xyz/",
   "dependencies": {
-    "mongoose": "^5.4.9",
+    "mongoose": "^5.4.0",
     "nodemailer": "^4.7.0",
     "rand-token": "^0.2.1"
   },
