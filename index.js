@@ -374,7 +374,8 @@ module.exports = function(mongoose) {
                         return callback(err, null);
                     }
 
-                    TempUser.remove(query, function(err) {
+                    // TempUser.remove(query, function(err) {
+                    TempUser.deleteOne(query, function(err) {
                         if (err) {
                             return callback(err, null);
                         }
